@@ -80,7 +80,7 @@ async function main() {
       data: {
         email: "manager@e2e.test",
         fullName: "E2E Manager",
-        managerId: owner.id,
+        supervisorId: owner.id,
         passwordHash,
         roleId: roles.get("manager")!
       }
@@ -89,7 +89,7 @@ async function main() {
       data: {
         email: "hr@e2e.test",
         fullName: "E2E HR",
-        managerId: owner.id,
+        supervisorId: owner.id,
         passwordHash,
         roleId: roles.get("hr")!
       }
@@ -98,7 +98,7 @@ async function main() {
       data: {
         email: "employee@e2e.test",
         fullName: "E2E Employee",
-        managerId: manager.id,
+        supervisorId: manager.id,
         passwordHash,
         roleId: roles.get("employee")!
       }

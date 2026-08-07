@@ -1,4 +1,4 @@
-FROM node:26.20.0-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 RUN npm install -g corepack@latest && corepack enable

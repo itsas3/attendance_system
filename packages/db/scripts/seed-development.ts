@@ -168,13 +168,15 @@ async function main() {
         employeeCode: "EMP-07",
         fullName: "Shaheer",
         roleId: roles["employee"]!.id,
-        managerId: manager.id,
+        supervisorId: manager.id,
         passwordHash: defaultPasswordHash,
         shiftInTime: "09:00",
         shiftOutTime: "18:00",
         timezone: "Asia/Karachi"
       },
-      update: {},
+      update: {
+        supervisorId: manager.id
+      },
       where: { email: "shaheer@test.com" }
     });
 

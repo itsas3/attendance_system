@@ -33,7 +33,7 @@ export default async function EmployeeNotesHistoryPage({ searchParams }: NotesPa
     where: { id: employeeId },
     include: {
       role: true,
-      manager: true
+      supervisor: true
     }
   });
 

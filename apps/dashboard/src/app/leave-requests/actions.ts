@@ -88,7 +88,7 @@ export async function submitLeaveRequest(formData: FormData) {
     // 3. Determine initial approval status and steps based on applicant role
     const employeeRecord = await db.employee.findUnique({
       where: { id: user.employeeId },
-      include: { manager: true, role: true }
+      include: { supervisor: true, role: true }
     });
 
     const roleName = employeeRecord?.role?.name?.toLowerCase() || "employee";

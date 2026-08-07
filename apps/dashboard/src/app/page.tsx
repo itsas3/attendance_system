@@ -5,6 +5,8 @@ import Link from "next/link";
 import { logout } from "./login/actions";
 import { createPrismaClient } from "@attendance/db";
 import type { Route } from "next";
+import { HeroSearch } from "./hero-search";
+import { ThemeToggle } from "./theme-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -15,91 +17,90 @@ const allModules: { name: string; permission: Permission; description: string; h
   {
     name: "My attendance",
     permission: "my_attendance",
-    description: "View and manage your own daily attendance logs.",
+    description: "View and manage your daily check-in/check-out timestamps and shift logs.",
     href: "/my-attendance"
   },
   {
     name: "Apply for Leave",
     permission: "my_attendance",
-    description: "Submit leave applications, track leave balances, and view approval status.",
+    description: "Submit time-off applications, track leave quotas, and view approval workflow status.",
     href: "/leave-requests"
   },
   {
     name: "Leave",
     permission: "reports",
-    description: "Configure HR leave categories, quotas, and monthly/annual accrual rules.",
+    description: "Configure HR leave categories, quotas, and annual accrual rules.",
     href: "/leave-settings"
   },
   {
     name: "List all employees",
     permission: "enrollment",
-    description: "View the complete list of all registered employees and staff details.",
+    description: "Browse the complete directory of registered staff members and official details.",
     href: "/employees"
   },
   {
     name: "Team attendance",
     permission: "team_attendance",
-    description: "Monitor the attendance status of your entire team.",
+    description: "Monitor real-time attendance logs and status of your entire team.",
     href: "/team-attendance"
   },
   {
     name: "My Team",
     permission: "my_team",
-    description: "View team members in column layout, manage employee personal/public notes, and complete performance evaluations.",
+    description: "View direct reports, manage employee notes, and perform evaluations.",
     href: "/my-team"
   },
   {
     name: "Performance Tracking & Analysis",
     permission: "reports",
-    description: "HR performance evaluation builder, manager scheduling, and organizational performance analytics.",
+    description: "HR performance evaluation builder, manager scheduling, and organizational analytics.",
     href: "/performance"
   },
   {
     name: "Manual requests",
     permission: "manual_reports",
-    description: "Submit manual requests for missing punches or time-off.",
+    description: "Submit manual requests for missing scans or punch corrections.",
     href: "/manual-requests"
   },
   {
     name: "Approvals",
     permission: "approvals",
-    description: "Review and approve pending requests from employees.",
+    description: "Review and process pending leave and punch correction applications.",
     href: "/approvals"
   },
   {
     name: "Enrollment",
     permission: "enrollment",
-    description: "Enroll new employees and manage access credentials.",
+    description: "Register new staff members and configure access credentials.",
     href: "/enrollment"
   },
   {
     name: "Reports",
     permission: "reports",
-    description: "Generate detailed attendance reports for payroll and compliance."
+    description: "Generate detailed organization attendance reports for payroll and compliance."
   },
   {
     name: "Workdays & Holidays",
     permission: "reports",
-    description: "Configure weekly off-days and manage official company holidays.",
+    description: "Configure weekly off-days and manage official company holiday calendars.",
     href: "/holidays"
   },
   {
     name: "Company Attendance",
     permission: "company_attendance",
-    description: "Executive organization attendance metrics and real-time punch feeds.",
+    description: "Executive organization-wide attendance metrics and live punch streams.",
     href: "/company-attendance"
   },
   {
     name: "Jobs",
     permission: "my_attendance",
-    description: "Browse open positions, apply, and (for HR) manage job postings.",
+    description: "Browse internal career postings, apply, or create new recruitment listings.",
     href: "/jobs"
   },
-
   {
     name: "Announcements",
     permission: "my_attendance",
-    description: "Company-wide notices and policy updates from HR.",
+    description: "Company-wide notices, policy updates, and HR bulletins.",
     href: "/announcements"
   }
 ];
@@ -113,7 +114,7 @@ export default async function Home() {
 
   const roleName = user.roleName?.toLowerCase() || "";
 
-  // Filter modules based on user role permissions & role fallback (Jobs and Announcements are visible to everyone)
+  // Filter modules based on user role permissions & role fallback
   const allowedModules = allModules.filter((m) => {
     if (m.name === "Jobs" || m.name === "Announcements") {
       return true;
@@ -173,6 +174,7 @@ export default async function Home() {
       pendingApprovalsCount = attCount + leaveCount;
     }
   }
+
   const currentEmployee = await db.employee.findUnique({
     where: { id: user.employeeId },
     select: { lastAnnouncementsViewedAt: true }
@@ -183,94 +185,84 @@ export default async function Home() {
   });
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <div>
-          <h1>Attendance System</h1>
-          <p className="muted">
-            Welcome back, <strong>{user.fullName}</strong> ({user.roleName})
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-          <Link
-            href={"/personal-records" as Route}
-            className="back-link"
-            style={{ textDecoration: "none" }}
-          >
-            👤 My Profile
-          </Link>
-          <form action={logout}>
-            <button type="submit" className="logout-btn">
-              Sign Out
-            </button>
-          </form>
-        </div>
-      </header>
-
-      <section className="panel-grid" aria-label="Dashboard modules">
-        {allowedModules.length === 0 && (
-          <p className="muted">You do not have permission to view any modules.</p>
-        )}
-        {allowedModules.map((module) => {
-          const isApprovals = module.permission === "approvals";
-          const isAnnouncements = module.name === "Announcements";
-
-          const content = (
-            <article className="panel" key={module.name}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start"
-                }}
-              >
-                <h2>{module.name}</h2>
-                {isApprovals && pendingApprovalsCount > 0 && (
-                  <span
-                    style={{
-                      background: "rgba(251, 191, 36, 0.2)",
-                      color: "#fbbf24",
-                      border: "1px solid rgba(251, 191, 36, 0.4)",
-                      padding: "4px 10px",
-                      borderRadius: "12px",
-                      fontSize: "0.8rem",
-                      fontWeight: 600
-                    }}
-                  >
-                    {pendingApprovalsCount} Pending
-                  </span>
-                )}
-                {isAnnouncements && unreadAnnouncementsCount > 0 && (
-                  <span
-                    style={{
-                      background: "rgba(96, 165, 250, 0.2)",
-                      color: "#60a5fa",
-                      border: "1px solid rgba(96, 165, 250, 0.4)",
-                      padding: "4px 10px",
-                      borderRadius: "12px",
-                      fontSize: "0.8rem",
-                      fontWeight: 600
-                    }}
-                  >
-                    {unreadAnnouncementsCount} New
-                  </span>
-                )}
+    <div className="hero-ambient-mesh">
+      <main style={{ maxWidth: "1280px", margin: "0 auto", padding: "16px 24px 64px 24px" }}>
+        {/* Glass Header Navigation */}
+        <header className="mymind-header">
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, #a855f7, #ec4899)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.2rem",
+                boxShadow: "0 4px 16px rgba(168, 85, 247, 0.4)"
+              }}
+            >
+              {"✦"}
+            </div>
+            <div>
+              <span className="brand-title">
+                Mindful Workspace
+              </span>
+              <div className="brand-subtitle">
+                Attendance & Team Intelligence
               </div>
-              <p className="muted">{module.description}</p>
-            </article>
-          );
+            </div>
+          </div>
 
-          if (module.href) {
-            return (
-              <Link href={module.href as Route} key={module.name} style={{ display: "contents" }}>
-                {content}
-              </Link>
-            );
-          }
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <ThemeToggle />
 
-          return content;
-        })}
-      </section>
-    </main>
+            <Link
+              href={("/personal-records" as Route)}
+              className="profile-pill-badge"
+            >
+              <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#10b981" }} />
+              <span>{user.fullName}</span>
+              <span className="role-tag">
+                ({user.roleName})
+              </span>
+            </Link>
+
+            <form action={logout}>
+              <button type="submit" className="logout-btn">
+                Sign Out
+              </button>
+            </form>
+          </div>
+        </header>
+
+        {/* Relaxing Hero Banner */}
+        <section className="hero-title-section">
+          <div className="hero-pill-badge">
+            <span style={{ color: "#a855f7" }}>{"✨"}</span>
+            <span>Welcome back, {user.fullName}</span>
+            <span style={{ color: "#38bdf8" }}>{"•"}</span>
+            <span style={{ opacity: 0.8 }}>{user.roleName.toUpperCase()} Portal</span>
+          </div>
+
+          <h1 className="hero-title">
+            Your mindful hub for <br />
+            <span className="hero-title-gradient">time, attendance & growth.</span>
+          </h1>
+
+          <p className="hero-subtitle">
+            Organize daily logs, review team approvals, track performance, and explore career opportunities in one beautiful, relaxing space.
+          </p>
+        </section>
+
+        {/* Interactive Search & Colorful Grid */}
+        <HeroSearch
+          allowedModules={allowedModules}
+          pendingApprovalsCount={pendingApprovalsCount}
+          unreadAnnouncementsCount={unreadAnnouncementsCount}
+        />
+      </main>
+    </div>
   );
 }
