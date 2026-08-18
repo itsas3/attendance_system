@@ -285,6 +285,7 @@ async function upsertDevelopmentEmployment(
   });
   shift ??= await tx.shift.create({
     data: {
+      organizationId: input.organizationId,
       name: `${input.employeeCode} default shift`,
       timezone: input.timezone ?? "Asia/Karachi",
       startTime: input.shiftInTime ?? "09:00",
@@ -410,7 +411,8 @@ async function main() {
         apiKeyHash: hashDeviceSecret(devDeviceSecret),
         id: devDeviceId,
         location: "Development bench",
-        name: "Development ESP32"
+        name: "Development ESP32",
+        organizationId: access.organization.id
       },
       update: {
         apiKeyHash: hashDeviceSecret(devDeviceSecret),
@@ -543,11 +545,14 @@ async function main() {
     // 5. Seed Default Company Settings & Sample Holiday
     await tx.companySetting.upsert({
       create: {
+        organizationId: access.organization.id,
         key: "weekly_off_days",
         value: [0] // Sunday default off-day
       },
       update: {},
-      where: { key: "weekly_off_days" }
+      where: {
+        organizationId_key: { organizationId: access.organization.id, key: "weekly_off_days" }
+      }
     });
 
     const holidayDate = new Date();
@@ -556,6 +561,7 @@ async function main() {
 
     await tx.holiday.deleteMany({
       where: {
+        organizationId: access.organization.id,
         description: "Company-wide annual off-day",
         name: "Official Company Holiday",
         NOT: { date: holidayDate }
@@ -564,6 +570,7 @@ async function main() {
 
     await tx.holiday.upsert({
       create: {
+        organizationId: access.organization.id,
         name: "Official Company Holiday",
         date: holidayDate,
         description: "Company-wide annual off-day"
@@ -572,7 +579,7 @@ async function main() {
         description: "Company-wide annual off-day",
         name: "Official Company Holiday"
       },
-      where: { date: holidayDate }
+      where: { organizationId_date: { organizationId: access.organization.id, date: holidayDate } }
     });
 
     // 6. Seed Default HR Leave Types & Employee Balances
@@ -622,7 +629,7 @@ async function main() {
     const seededLeaveTypes: Record<string, { id: string }> = {};
     for (const lt of defaultLeaveTypes) {
       const created = await tx.leaveTypeConfig.upsert({
-        create: lt,
+        create: { ...lt, organizationId: access.organization.id },
         update: {
           accrualFrequency: lt.accrualFrequency,
           allowCarryForward: lt.allowCarryForward,
@@ -633,7 +640,12 @@ async function main() {
           maxCarryForwardDays: lt.maxCarryForwardDays,
           name: lt.name
         },
-        where: { code: lt.code }
+        where: {
+          organizationId_code: {
+            organizationId: access.organization.id,
+            code: lt.code
+          }
+        }
       });
       seededLeaveTypes[lt.code] = created;
     }
