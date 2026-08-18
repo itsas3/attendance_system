@@ -13,7 +13,7 @@ function isAuthorized(user: Awaited<ReturnType<typeof getCurrentUser>>) {
 
 export async function updateWeeklyOffDays(formData: FormData) {
   const user = await getCurrentUser();
-  if (!isAuthorized(user)) {
+  if (!user || !isAuthorized(user)) {
     throw new Error("Unauthorized");
   }
 
@@ -37,13 +37,16 @@ export async function updateWeeklyOffDays(formData: FormData) {
 
   await db.companySetting.upsert({
     create: {
+      organizationId: user.organizationId,
       key: "weekly_off_days",
       value: offDays
     },
     update: {
       value: offDays
     },
-    where: { key: "weekly_off_days" }
+    where: {
+      organizationId_key: { organizationId: user.organizationId, key: "weekly_off_days" }
+    }
   });
 
   revalidatePath("/work-calendar");
@@ -53,7 +56,7 @@ export async function updateWeeklyOffDays(formData: FormData) {
 
 export async function createHoliday(formData: FormData) {
   const user = await getCurrentUser();
-  if (!isAuthorized(user)) {
+  if (!user || !isAuthorized(user)) {
     throw new Error("Unauthorized");
   }
 
@@ -70,6 +73,7 @@ export async function createHoliday(formData: FormData) {
 
   await db.holiday.upsert({
     create: {
+      organizationId: user.organizationId,
       name,
       date,
       description
@@ -78,7 +82,9 @@ export async function createHoliday(formData: FormData) {
       name,
       description
     },
-    where: { date }
+    where: {
+      organizationId_date: { organizationId: user.organizationId, date }
+    }
   });
 
   revalidatePath("/work-calendar");
@@ -88,7 +94,7 @@ export async function createHoliday(formData: FormData) {
 
 export async function deleteHoliday(formData: FormData) {
   const user = await getCurrentUser();
-  if (!isAuthorized(user)) {
+  if (!user || !isAuthorized(user)) {
     throw new Error("Unauthorized");
   }
 

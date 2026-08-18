@@ -38,8 +38,13 @@ export async function submitLeaveRequest(formData: FormData) {
   }
 
   // 1. Fetch holidays and off-days for business day calculation
-  const holidays = await db.holiday.findMany({ select: { date: true } });
-  const offDaysSetting = await db.companySetting.findUnique({ where: { key: "weekly_off_days" } });
+  const holidays = await db.holiday.findMany({
+    where: { organizationId: user.organizationId },
+    select: { date: true }
+  });
+  const offDaysSetting = await db.companySetting.findUnique({
+    where: { organizationId_key: { organizationId: user.organizationId, key: "weekly_off_days" } }
+  });
   const offDaysArray = Array.isArray(offDaysSetting?.value)
     ? (offDaysSetting.value as number[])
     : [0];

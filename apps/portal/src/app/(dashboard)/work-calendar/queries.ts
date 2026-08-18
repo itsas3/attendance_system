@@ -1,4 +1,5 @@
 import { createPrismaClient } from "@attendance/db";
+import { getCurrentUser } from "../../../lib/session";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 export const weekdayNames = [
@@ -20,9 +21,21 @@ function getOffDaysType(days: number[]): string {
 }
 
 export async function getWorkCalendarData() {
+  const user = await getCurrentUser();
+  const organizationId = user?.organizationId;
+
   const [setting, holidays] = await Promise.all([
-    db.companySetting.findUnique({ where: { key: "weekly_off_days" } }),
-    db.holiday.findMany({ orderBy: { date: "asc" } })
+    organizationId
+      ? db.companySetting.findUnique({
+          where: { organizationId_key: { organizationId, key: "weekly_off_days" } }
+        })
+      : null,
+    organizationId
+      ? db.holiday.findMany({
+          where: { organizationId },
+          orderBy: { date: "asc" }
+        })
+      : []
   ]);
   const offDays = Array.isArray(setting?.value) ? (setting.value as number[]) : [0];
   return {

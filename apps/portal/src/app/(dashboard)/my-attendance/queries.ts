@@ -26,6 +26,12 @@ async function resolveRange(range: string, employeeId: string): Promise<Attendan
 }
 
 async function getSources(employeeId: string, { startDate, endDate }: AttendanceRange) {
+  const employment = await db.employment.findUnique({
+    where: { id: employeeId },
+    select: { organizationId: true }
+  });
+  const organizationId = employment?.organizationId;
+
   return Promise.all([
     db.employment.findUnique({
       where: { id: employeeId },
@@ -38,8 +44,16 @@ async function getSources(employeeId: string, { startDate, endDate }: Attendance
         }
       }
     }),
-    db.companySetting.findUnique({ where: { key: "weekly_off_days" } }),
-    db.holiday.findMany({ where: { date: { gte: startDate, lte: endDate } } }),
+    organizationId
+      ? db.companySetting.findUnique({
+          where: { organizationId_key: { organizationId: organizationId, key: "weekly_off_days" } }
+        })
+      : null,
+    organizationId
+      ? db.holiday.findMany({
+          where: { organizationId, date: { gte: startDate, lte: endDate } }
+        })
+      : [],
     db.leaveRequest.findMany({
       where: {
         employeeId,

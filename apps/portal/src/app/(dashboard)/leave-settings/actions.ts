@@ -32,13 +32,16 @@ export async function createLeaveType(formData: FormData) {
   }
 
   try {
-    const existing = await db.leaveTypeConfig.findUnique({ where: { code } });
+    const existing = await db.leaveTypeConfig.findUnique({
+      where: { organizationId_code: { organizationId: user.organizationId, code } }
+    });
     if (existing) {
       return { error: `A leave type with code "${code}" already exists.` };
     }
 
     const createdType = await db.leaveTypeConfig.create({
       data: {
+        organizationId: user.organizationId,
         name,
         code,
         description,
