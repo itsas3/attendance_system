@@ -102,7 +102,7 @@ export async function deleteHoliday(formData: FormData) {
   if (!id) return;
 
   await db.holiday.delete({
-    where: { id }
+    where: { id, organizationId: user.organizationId }
   });
 
   revalidatePath("/work-calendar");

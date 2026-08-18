@@ -184,12 +184,17 @@ export async function approveRequest(requestId: string): Promise<AttendanceCorre
     });
 
     if (request.requestedTimestamp) {
-      let device = await db.device.findFirst({ where: { status: "ACTIVE" } });
-      if (!device) device = await db.device.findFirst();
+      let device = await db.device.findFirst({
+        where: { organizationId: user.organizationId, status: "ACTIVE" }
+      });
+      if (!device) {
+        device = await db.device.findFirst({ where: { organizationId: user.organizationId } });
+      }
 
       if (device) {
         await db.scanEvent.create({
           data: {
+            organizationId: user.organizationId,
             deviceId: device.id,
             employeeId: request.employeeId,
             scannerTemplateId: 1,

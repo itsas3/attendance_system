@@ -31,7 +31,7 @@ export async function getTeamManagementData(
   });
   const now = new Date();
   const template = await db.performanceTemplate.findFirst({
-    where: { startDate: { lte: now }, endDate: { gte: now } },
+    where: { organizationId, startDate: { lte: now }, endDate: { gte: now } },
     orderBy: { createdAt: "desc" }
   });
   const members = employees.map((employee) => ({

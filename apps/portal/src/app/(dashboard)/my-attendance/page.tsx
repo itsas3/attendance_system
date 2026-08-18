@@ -17,7 +17,7 @@ export default async function MyAttendancePage({
   const user = await requireCurrentUser();
   if (!hasPermission(user, "my_attendance")) redirect("/");
   const params = await searchParams;
-  const data = await getAttendancePageData(user.employeeId, params.range);
+  const data = await getAttendancePageData(user.organizationId, user.employeeId, params.range);
   return (
     <main className="app-shell">
       <AttendanceHeader fullName={user.fullName} range={data.range} />

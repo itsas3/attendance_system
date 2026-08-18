@@ -6,11 +6,15 @@ import type { AttendancePageData, WeekdayData } from "./types";
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-async function resolveRange(range: string, employeeId: string): Promise<AttendanceRange> {
+async function resolveRange(
+  organizationId: string,
+  range: string,
+  employeeId: string
+): Promise<AttendanceRange> {
   const fixed = getFixedAttendanceRange(range);
   if (fixed) return fixed;
   const earliest = await db.scanEvent.findFirst({
-    where: { employeeId },
+    where: { organizationId, employeeId },
     orderBy: { serverReceivedAt: "asc" },
     select: { serverReceivedAt: true }
   });
@@ -25,13 +29,11 @@ async function resolveRange(range: string, employeeId: string): Promise<Attendan
   };
 }
 
-async function getSources(employeeId: string, { startDate, endDate }: AttendanceRange) {
-  const employment = await db.employment.findUnique({
-    where: { id: employeeId },
-    select: { organizationId: true }
-  });
-  const organizationId = employment?.organizationId;
-
+async function getSources(
+  organizationId: string,
+  employeeId: string,
+  { startDate, endDate }: AttendanceRange
+) {
   return Promise.all([
     db.employment.findUnique({
       where: { id: employeeId },
@@ -44,16 +46,12 @@ async function getSources(employeeId: string, { startDate, endDate }: Attendance
         }
       }
     }),
-    organizationId
-      ? db.companySetting.findUnique({
-          where: { organizationId_key: { organizationId: organizationId, key: "weekly_off_days" } }
-        })
-      : null,
-    organizationId
-      ? db.holiday.findMany({
-          where: { organizationId, date: { gte: startDate, lte: endDate } }
-        })
-      : [],
+    db.companySetting.findUnique({
+      where: { organizationId_key: { organizationId, key: "weekly_off_days" } }
+    }),
+    db.holiday.findMany({
+      where: { organizationId, date: { gte: startDate, lte: endDate } }
+    }),
     db.leaveRequest.findMany({
       where: {
         employeeId,
@@ -64,7 +62,7 @@ async function getSources(employeeId: string, { startDate, endDate }: Attendance
       include: { leaveType: true }
     }),
     db.scanEvent.findMany({
-      where: { employeeId, serverReceivedAt: { gte: startDate, lte: endDate } },
+      where: { organizationId, employeeId, serverReceivedAt: { gte: startDate, lte: endDate } },
       orderBy: { serverReceivedAt: "asc" }
     })
   ]);
@@ -151,12 +149,13 @@ function buildDays(range: AttendanceRange, sources: Sources): WeekdayData[] {
 }
 
 export async function getAttendancePageData(
+  organizationId: string,
   employeeId: string,
   requestedRange?: string
 ): Promise<AttendancePageData> {
   const rangeName = requestedRange ?? "last_week";
-  const range = await resolveRange(rangeName, employeeId);
-  const sources = await getSources(employeeId, range);
+  const range = await resolveRange(organizationId, rangeName, employeeId);
+  const sources = await getSources(organizationId, employeeId, range);
   const weekdays = buildDays(range, sources);
   const totalScans = sources[4].length;
   return {

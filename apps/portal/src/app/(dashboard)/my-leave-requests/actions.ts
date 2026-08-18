@@ -62,7 +62,9 @@ export async function submitLeaveRequest(formData: FormData) {
 
   // 2. Fetch employee balance for this leave type for the current year
   const currentYear = startDate.getFullYear();
-  const leaveType = await db.leaveTypeConfig.findUnique({ where: { id: leaveTypeId } });
+  const leaveType = await db.leaveTypeConfig.findUnique({
+    where: { id: leaveTypeId, organizationId: user.organizationId }
+  });
   if (!leaveType || !leaveType.isActive) {
     return { error: "Selected leave category is invalid or inactive." };
   }

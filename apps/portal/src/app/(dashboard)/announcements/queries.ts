@@ -2,8 +2,9 @@ import { createPrismaClient } from "@attendance/db";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
-export async function getAnnouncements() {
+export async function getAnnouncements(organizationId: string) {
   const announcements = await db.announcement.findMany({
+    where: { organizationId },
     include: {
       createdBy: { include: { person: { select: { legalName: true, preferredName: true } } } }
     },

@@ -56,7 +56,10 @@ export async function createLeaveType(formData: FormData) {
 
     // Automatically create/update leave balances for active employees for the current year
     const currentYear = new Date().getFullYear();
-    const employees = await db.employment.findMany({ select: { id: true } });
+    const employees = await db.employment.findMany({
+      where: { organizationId: user.organizationId },
+      select: { id: true }
+    });
 
     const accrued = defaultAllocation;
 
@@ -100,7 +103,7 @@ export async function toggleLeaveTypeStatus(id: string, isActive: boolean) {
 
   try {
     await db.leaveTypeConfig.update({
-      where: { id },
+      where: { id, organizationId: user.organizationId },
       data: { isActive }
     });
 

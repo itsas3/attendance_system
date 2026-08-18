@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AnnouncementsPage() {
   const user = await requireCurrentUser();
-  const announcements = await getAnnouncements();
+  const announcements = await getAnnouncements(user.organizationId);
   await markAnnouncementsViewed(user.employeeId);
   const canManage = canManageAnnouncements(user);
 
