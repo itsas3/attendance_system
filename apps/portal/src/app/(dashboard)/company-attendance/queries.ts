@@ -5,8 +5,11 @@ import { employmentIdentityInclude, getEmploymentName } from "../../../lib/emplo
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
-export async function getCompanyAttendanceData(filter: CompanyAttendanceFilter) {
-  const scanWhere: Prisma.ScanEventWhereInput = {};
+export async function getCompanyAttendanceData(
+  organizationId: string,
+  filter: CompanyAttendanceFilter
+) {
+  const scanWhere: Prisma.ScanEventWhereInput = { organizationId };
 
   if (filter.startRange) {
     scanWhere.serverReceivedAt = { gte: filter.startRange };
@@ -17,7 +20,7 @@ export async function getCompanyAttendanceData(filter: CompanyAttendanceFilter) 
 
   const [activeEmployees, activeDevicesCount, periodScans] = await Promise.all([
     db.employment.findMany({
-      where: { status: "ACTIVE" },
+      where: { organizationId, status: "ACTIVE" },
       include: {
         ...employmentIdentityInclude,
         assignments: {
@@ -30,7 +33,7 @@ export async function getCompanyAttendanceData(filter: CompanyAttendanceFilter) 
       },
       orderBy: { employeeCode: "asc" }
     }),
-    db.device.count({ where: { status: "ACTIVE" } }),
+    db.device.count({ where: { organizationId, status: "ACTIVE" } }),
     db.scanEvent.findMany({
       where: scanWhere,
       include: { employee: { include: employmentIdentityInclude }, device: true },

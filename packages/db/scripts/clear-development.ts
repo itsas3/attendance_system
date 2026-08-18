@@ -53,6 +53,14 @@ async function main() {
       results.push(await tx.jobRun.deleteMany());
       results.push(await tx.holiday.deleteMany());
       results.push(await tx.companySetting.deleteMany());
+      results.push(await tx.jobApplicationStepResponse.deleteMany());
+      results.push(await tx.jobApplication.deleteMany());
+      results.push(await tx.jobPostingStep.deleteMany());
+      results.push(await tx.jobPosting.deleteMany());
+      results.push(await tx.announcement.deleteMany());
+      results.push(await tx.performanceEvaluation.deleteMany());
+      results.push(await tx.performanceTemplate.deleteMany());
+      results.push(await tx.employeeNote.deleteMany());
       results.push(await tx.reportingLine.deleteMany());
       results.push(await tx.employmentAssignment.deleteMany());
       results.push(await tx.roleAssignment.deleteMany());

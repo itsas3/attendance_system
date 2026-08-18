@@ -23,8 +23,10 @@ export default async function CompanyAttendancePage({ searchParams }: CompanyAtt
   }
 
   const filter = resolveCompanyAttendanceFilter(await searchParams);
-  const { activeEmployees, activeDevicesCount, periodScans } =
-    await getCompanyAttendanceData(filter);
+  const { activeEmployees, activeDevicesCount, periodScans } = await getCompanyAttendanceData(
+    user.organizationId,
+    filter
+  );
   const selectedEmployee = activeEmployees.find(({ id }) => id === filter.selectedEmployeeId);
   const metrics = calculateAttendanceMetrics(activeEmployees, periodScans, selectedEmployee);
   const roleBreakdown = getRoleBreakdown(activeEmployees);

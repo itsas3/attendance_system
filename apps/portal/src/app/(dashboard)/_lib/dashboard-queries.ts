@@ -34,7 +34,10 @@ export async function getDashboardCounts(user: SessionUser) {
     })
   ]);
   const unreadAnnouncements = await db.announcement.count({
-    where: { createdAt: { gt: employee?.lastAnnouncementsViewedAt ?? new Date(0) } }
+    where: {
+      organizationId: user.organizationId,
+      createdAt: { gt: employee?.lastAnnouncementsViewedAt ?? new Date(0) }
+    }
   });
 
   return { pendingAttendance, pendingLeave, unreadAnnouncements };

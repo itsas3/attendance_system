@@ -47,6 +47,7 @@ export async function createPerformanceTemplate(data: {
 
   const template = await db.performanceTemplate.create({
     data: {
+      organizationId: user.organizationId,
       title: title.trim(),
       description: description?.trim() || null,
       startDate: new Date(startDate),
@@ -74,7 +75,7 @@ export async function deletePerformanceTemplate(id: string) {
   }
 
   await db.performanceTemplate.delete({
-    where: { id }
+    where: { id, organizationId: user.organizationId }
   });
 
   revalidatePath("/performance");
