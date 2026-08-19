@@ -260,8 +260,26 @@ async function main() {
       ]
     });
 
+    await tx.companySetting.create({
+      data: {
+        organizationId: access.organization.id,
+        key: "weekly_off_days",
+        value: [0]
+      }
+    });
+
     const annualLeave = await tx.leaveTypeConfig.create({
-      data: { code: "E2E_ANNUAL", name: "E2E Annual Leave", defaultAllocation: 10 }
+      data: {
+        organizationId: access.organization.id,
+        code: "E2E_ANNUAL",
+        name: "E2E Annual Leave",
+        defaultAllocation: 10,
+        accrualFrequency: "ANNUALLY",
+        allowCarryForward: false,
+        maxCarryForwardDays: 0,
+        isPaid: true,
+        isActive: true
+      }
     });
 
     await tx.manualAttendanceRequest.createMany({

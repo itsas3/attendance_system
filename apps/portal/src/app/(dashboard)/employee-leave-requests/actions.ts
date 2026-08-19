@@ -24,7 +24,8 @@ interface LeaveReqForDeduction {
 async function applyLeaveBalanceDeduction(
   leaveReq: LeaveReqForDeduction,
   currentYear: number,
-  overrideAllPaid: boolean
+  overrideAllPaid: boolean,
+  organizationId: string
 ) {
   let paidToDeduct: number;
   let unpaidToDeduct: number;
@@ -89,12 +90,13 @@ async function applyLeaveBalanceDeduction(
   // 2. Update Unpaid Leave Balance if excess days exist
   if (unpaidToDeduct > 0) {
     let unpaidType = await db.leaveTypeConfig.findFirst({
-      where: { isPaid: false }
+      where: { organizationId, isPaid: false }
     });
 
     if (!unpaidType) {
       unpaidType = await db.leaveTypeConfig.create({
         data: {
+          organizationId,
           code: "UNPAID",
           name: "Unpaid Leave",
           description: "Unpaid Leave / Loss of Pay (LOP)",
@@ -193,8 +195,19 @@ export async function approveLeaveRequestAction(
     const currentYear = new Date(leaveReq.startDate).getFullYear();
 
     if (leaveReq.status === "PENDING_MANAGER") {
-      if (user.roleName !== "manager" && user.roleName !== "hr" && user.roleName !== "owner") {
-        return { error: "Manager or higher role required for approval." };
+      const isOwnerOrHrForStage1 = user.roleName === "hr" || user.roleName === "owner";
+      const isDirectSupervisor =
+        user.roleName === "manager" &&
+        (await db.reportingLine.findFirst({
+          where: {
+            subordinateEmploymentId: leaveReq.employeeId,
+            supervisorEmploymentId: user.employeeId,
+            validUntil: null
+          }
+        })) !== null;
+
+      if (!isOwnerOrHrForStage1 && !isDirectSupervisor) {
+        return { error: "You are not the direct supervisor for this employee's leave request." };
       }
 
       if (!(await canManagerActOnEmployeeRequest(user, leaveReq.employeeId))) {
@@ -219,11 +232,26 @@ export async function approveLeaveRequestAction(
 
       // If approver is HR or Owner, finalize approval immediately!
       if (user.roleName === "hr" || user.roleName === "owner") {
-        await applyLeaveBalanceDeduction(leaveReq, currentYear, overrideAllPaid);
+        await applyLeaveBalanceDeduction(
+          leaveReq,
+          currentYear,
+          overrideAllPaid,
+          user.organizationId
+        );
       } else {
         // If Manager approves, advance to PENDING_HR
         const hrEmployee = await findEmploymentByRole(user.organizationId, "hr");
-        const hrApproverId = hrEmployee ? hrEmployee.id : user.employeeId;
+        const ownerEmployee = hrEmployee
+          ? null
+          : await findEmploymentByRole(user.organizationId, "owner");
+        const hrApproverId = hrEmployee?.id ?? ownerEmployee?.id ?? null;
+
+        if (!hrApproverId) {
+          return {
+            error:
+              "No HR or Owner is configured for this organization to complete Stage 2 approval."
+          };
+        }
 
         await db.leaveApprovalStep.create({
           data: {
@@ -262,7 +290,7 @@ export async function approveLeaveRequestAction(
       }
 
       // Final Approval! Update Leave Balance
-      await applyLeaveBalanceDeduction(leaveReq, currentYear, overrideAllPaid);
+      await applyLeaveBalanceDeduction(leaveReq, currentYear, overrideAllPaid, user.organizationId);
     }
 
     revalidatePath("/employee-leave-requests");

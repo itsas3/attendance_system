@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function WorkCalendarPage() {
   const user = await requireCurrentUser();
   if (!hasAnyPermission(user, ["company_attendance", "reports", "enrollment"])) redirect("/");
-  const data = await getWorkCalendarData();
+  const data = await getWorkCalendarData(user.organizationId);
   return (
     <main className="app-shell">
       <WorkCalendarHeader />

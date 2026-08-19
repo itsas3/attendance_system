@@ -74,8 +74,12 @@ export async function getTeamAttendanceData(
     orderBy: { employeeCode: "asc" }
   });
   const [setting, holiday, scans] = await Promise.all([
-    db.companySetting.findUnique({ where: { key: "weekly_off_days" } }),
-    db.holiday.findUnique({ where: { date: start } }),
+    db.companySetting.findUnique({
+      where: { organizationId_key: { organizationId, key: "weekly_off_days" } }
+    }),
+    db.holiday.findUnique({
+      where: { organizationId_date: { organizationId, date: start } }
+    }),
     db.scanEvent.findMany({
       where: {
         employeeId: { in: employees.map(({ id }) => id) },

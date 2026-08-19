@@ -44,6 +44,7 @@ export async function createJobPosting(
 
   const job = await db.jobPosting.create({
     data: {
+      organizationId: user!.organizationId,
       title,
       department: department || null,
       location: location || null,
@@ -74,7 +75,7 @@ export async function setJobPostingStatus(formData: FormData) {
   }
 
   await db.jobPosting.update({
-    where: { id },
+    where: { id, organizationId: user!.organizationId },
     data: { status }
   });
 
@@ -93,7 +94,7 @@ export async function deleteJobPosting(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
 
-  await db.jobPosting.delete({ where: { id } });
+  await db.jobPosting.delete({ where: { id, organizationId: user!.organizationId } });
 
   revalidatePath("/jobs");
 }

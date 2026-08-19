@@ -122,6 +122,7 @@ export async function createEmployee(
 
     const shift = await tx.shift.create({
       data: {
+        organizationId: user.organizationId,
         name: `${input.fullName} default shift`,
         timezone: input.timezone,
         startTime: input.shiftInTime,

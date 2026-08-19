@@ -31,6 +31,7 @@ export async function createAnnouncement(
 
   await db.announcement.create({
     data: {
+      organizationId: user!.organizationId,
       title,
       content,
       createdById: user!.userAccountId
@@ -53,7 +54,7 @@ export async function deleteAnnouncement(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
 
-  await db.announcement.delete({ where: { id } });
+  await db.announcement.delete({ where: { id, organizationId: user!.organizationId } });
 
   revalidatePath("/announcements");
   revalidatePath("/");

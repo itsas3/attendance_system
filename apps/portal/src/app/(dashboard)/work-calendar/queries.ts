@@ -19,11 +19,17 @@ function getOffDaysType(days: number[]): string {
   return "custom";
 }
 
-export async function getWorkCalendarData() {
+export async function getWorkCalendarData(organizationId: string) {
   const [setting, holidays] = await Promise.all([
-    db.companySetting.findUnique({ where: { key: "weekly_off_days" } }),
-    db.holiday.findMany({ orderBy: { date: "asc" } })
+    db.companySetting.findUnique({
+      where: { organizationId_key: { organizationId, key: "weekly_off_days" } }
+    }),
+    db.holiday.findMany({
+      where: { organizationId },
+      orderBy: { date: "asc" }
+    })
   ]);
+
   const offDays = Array.isArray(setting?.value) ? (setting.value as number[]) : [0];
   return {
     offDays,

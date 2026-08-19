@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function JobsPage() {
   const user = await getCurrentUser();
   const userIsHr = isHr(user);
-  const jobs = await getJobPostings(userIsHr);
+  const jobs = await getJobPostings(user?.organizationId, userIsHr);
   return (
     <main className="app-shell">
       <JobsHeader signedIn={Boolean(user)} isHr={userIsHr} />

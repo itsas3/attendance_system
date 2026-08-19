@@ -231,18 +231,30 @@ model UserSession {
 }
 
 model Organization {
-  id          String                   @id @default(cuid())
-  name        String
-  slug        String                   @unique
-  timezone    String                   @default("Asia/Karachi")
-  isActive    Boolean                  @default(true)
-  createdAt   DateTime                 @default(now())
-  updatedAt   DateTime                 @updatedAt
-  memberships OrganizationMembership[]
-  employments Employment[]
-  units       OrganizationUnit[]
-  positions   Position[]
-  roles       Role[]
+  id                   String                   @id @default(cuid())
+  name                 String
+  slug                 String                   @unique
+  timezone             String                   @default("Asia/Karachi")
+  isActive             Boolean                  @default(true)
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  memberships          OrganizationMembership[]
+  employments          Employment[]
+  units                OrganizationUnit[]
+  positions            Position[]
+  roles                Role[]
+  devices              Device[]
+  scanEvents           ScanEvent[]
+  shifts               Shift[]
+  holidays             Holiday[]
+  companySettings      CompanySetting[]
+  jobPostings          JobPosting[]
+  announcements        Announcement[]
+  leaveTypeConfigs     LeaveTypeConfig[]
+  performanceTemplates PerformanceTemplate[]
+  auditLogs            AuditLog[]
+  notifications        Notification[]
+  reportExports        ReportExport[]
 }
 
 model OrganizationMembership {
@@ -381,6 +393,7 @@ model ReportingLine {
 
 model Device {
   id                     String                  @id @default(cuid())
+  organizationId         String?
   name                   String
   location               String?
   apiKeyHash             String
@@ -391,11 +404,13 @@ model Device {
   lastSeenAt             DateTime?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
+  organization           Organization?           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   enrollmentSessions     EnrollmentSession[]
   fingerprintEnrollments FingerprintEnrollment[]
   scanEvents             ScanEvent[]
 
   @@index([status, lastSeenAt])
+  @@index([organizationId, status])
 }
 
 model FingerprintEnrollment {
@@ -436,6 +451,7 @@ model EnrollmentSession {
 
 model ScanEvent {
   id                 String                    @id @default(cuid())
+  organizationId     String?
   deviceId           String
   employeeId         String?
   scannerTemplateId  Int
@@ -446,25 +462,31 @@ model ScanEvent {
   serverReceivedAt   DateTime                  @default(now())
   createdAt          DateTime                  @default(now())
   removedByRequests  ManualAttendanceRequest[] @relation("RemovedScan")
+  organization       Organization?             @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   device             Device                    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   employee           Employment?               @relation(fields: [employeeId], references: [id], onDelete: SetNull)
 
   @@unique([deviceId, deviceScanSequence])
   @@index([employeeId, serverReceivedAt])
   @@index([deviceId, serverReceivedAt])
+  @@index([organizationId, serverReceivedAt])
 }
 
 model Shift {
-  id           String            @id @default(cuid())
-  name         String
-  timezone     String            @default("Asia/Karachi")
-  startTime    String
-  endTime      String
-  workdays     Int[]
-  graceMinutes Int               @default(0)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  assignments  ShiftAssignment[]
+  id             String            @id @default(cuid())
+  organizationId String?
+  name           String
+  timezone       String            @default("Asia/Karachi")
+  startTime      String
+  endTime        String
+  workdays       Int[]
+  graceMinutes   Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization?     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  assignments    ShiftAssignment[]
+
+  @@index([organizationId])
 }
 
 model ShiftAssignment {
@@ -519,33 +541,39 @@ model ApprovalStep {
 }
 
 model Notification {
-  id            String             @id @default(cuid())
-  userAccountId String
-  type          NotificationType
-  status        NotificationStatus @default(UNREAD)
-  title         String
-  body          String
-  payload       Json?
-  readAt        DateTime?
-  createdAt     DateTime           @default(now())
-  userAccount   UserAccount        @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
+  id             String             @id @default(cuid())
+  organizationId String?
+  userAccountId  String
+  type           NotificationType
+  status         NotificationStatus @default(UNREAD)
+  title          String
+  body           String
+  payload        Json?
+  readAt         DateTime?
+  createdAt      DateTime           @default(now())
+  organization   Organization?      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  userAccount    UserAccount        @relation(fields: [userAccountId], references: [id], onDelete: Cascade)
 
   @@index([userAccountId, status, createdAt])
+  @@index([organizationId, createdAt])
 }
 
 model AuditLog {
-  id         String       @id @default(cuid())
-  actorId    String?
-  action     String
-  entityType String
-  entityId   String
-  before     Json?
-  after      Json?
-  createdAt  DateTime     @default(now())
-  actor      UserAccount? @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+  id             String        @id @default(cuid())
+  organizationId String?
+  actorId        String?
+  action         String
+  entityType     String
+  entityId       String
+  before         Json?
+  after          Json?
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  actor          UserAccount?  @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([entityType, entityId, createdAt])
   @@index([actorId, createdAt])
+  @@index([organizationId, createdAt])
 }
 
 model JobRun {
@@ -561,6 +589,7 @@ model JobRun {
 
 model ReportExport {
   id                       String             @id @default(cuid())
+  organizationId           String?
   requestedByUserAccountId String
   name                     String
   status                   ReportExportStatus @default(PENDING)
@@ -569,9 +598,11 @@ model ReportExport {
   errorMessage             String?
   createdAt                DateTime           @default(now())
   completedAt              DateTime?
+  organization             Organization?      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   requestedBy              UserAccount        @relation(fields: [requestedByUserAccountId], references: [id], onDelete: Restrict)
 
   @@index([requestedByUserAccountId, createdAt])
+  @@index([organizationId, createdAt])
 }
 
 model Role {
@@ -654,22 +685,31 @@ model RoleAssignment {
 }
 
 model Holiday {
-  id          String   @id @default(cuid())
-  name        String
-  date        DateTime @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String        @id @default(cuid())
+  organizationId String?
+  name           String
+  date           DateTime
+  description    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, date])
 }
 
 model CompanySetting {
-  key       String   @id
-  value     Json
-  updatedAt DateTime @updatedAt
+  organizationId String
+  key            String
+  value          Json
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, key])
 }
 
 model JobPosting {
   id             String           @id @default(cuid())
+  organizationId String?
   title          String
   department     String?
   location       String?
@@ -679,12 +719,14 @@ model JobPosting {
   createdById    String
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   createdBy      UserAccount      @relation("JobPostingCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   applications   JobApplication[]
   steps          JobPostingStep[]
 
   @@index([status, createdAt])
   @@index([createdById])
+  @@index([organizationId, status, createdAt])
 }
 
 model JobApplication {
@@ -725,16 +767,19 @@ enum InterviewMode {
 }
 
 model Announcement {
-  id          String      @id @default(cuid())
-  title       String
-  content     String
-  createdById String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  createdBy   UserAccount @relation("AnnouncementCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  id             String        @id @default(cuid())
+  organizationId String?
+  title          String
+  content        String
+  createdById    String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  createdBy      UserAccount   @relation("AnnouncementCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
 
   @@index([createdAt])
   @@index([createdById])
+  @@index([organizationId, createdAt])
 }
 
 model JobPostingStep {
@@ -787,7 +832,8 @@ model JobApplicationStepResponse {
 
 model LeaveTypeConfig {
   id                  String           @id @default(cuid())
-  code                String           @unique
+  organizationId      String?
+  code                String
   name                String
   description         String?
   accrualFrequency    AccrualFrequency @default(ANNUALLY)
@@ -798,8 +844,11 @@ model LeaveTypeConfig {
   isActive            Boolean          @default(true)
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
-  leaveRequests       LeaveRequest[]
-  leaveBalances       LeaveBalance[]
+  organization        Organization?    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  leaveRequests        LeaveRequest[]
+  leaveBalances        LeaveBalance[]
+
+  @@unique([organizationId, code])
 }
 
 model LeaveRequest {
@@ -876,19 +925,22 @@ model EmployeeNote {
 }
 
 model PerformanceTemplate {
-  id          String                  @id @default(cuid())
-  title       String
-  description String?
-  fields      Json
-  startDate   DateTime
-  endDate     DateTime
-  createdById String
-  createdAt   DateTime                @default(now())
-  updatedAt   DateTime                @updatedAt
-  createdBy   UserAccount             @relation("PerformanceTemplateCreator", fields: [createdById], references: [id], onDelete: Restrict)
-  evaluations PerformanceEvaluation[]
+  id             String                  @id @default(cuid())
+  organizationId String?
+  title          String
+  description    String?
+  fields         Json
+  startDate      DateTime
+  endDate        DateTime
+  createdById    String
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  organization   Organization?           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  createdBy      UserAccount             @relation("PerformanceTemplateCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  evaluations    PerformanceEvaluation[]
 
   @@index([startDate, endDate])
+  @@index([organizationId, startDate, endDate])
 }
 
 model PerformanceEvaluation {
