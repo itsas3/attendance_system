@@ -6,6 +6,7 @@ import { getCurrentUser } from "../../../lib/session";
 
 import { calculateAvailableBalance } from "@attendance/attendance-core";
 import { employmentAccessInclude, getEmploymentRoleKey } from "../../../lib/employment";
+import { canManagerActOnEmployeeRequest } from "../../../lib/resource-authorization";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
@@ -196,7 +197,15 @@ export async function approveLeaveRequestAction(
         return { error: "Manager or higher role required for approval." };
       }
 
-      const step1 = leaveReq.approvalSteps.find((s) => s.sequence === 1);
+      if (!(await canManagerActOnEmployeeRequest(user, leaveReq.employeeId))) {
+        return {
+          error: "Unauthorized: You can only approve leave requests submitted by your direct reports."
+        };
+      }
+
+      const step1 = leaveReq.approvalSteps.find(
+        (s: (typeof leaveReq.approvalSteps)[number]) => s.sequence === 1
+      );
       if (step1) {
         await db.leaveApprovalStep.update({
           where: { id: step1.id },
@@ -238,7 +247,9 @@ export async function approveLeaveRequestAction(
       }
 
       const step2 =
-        leaveReq.approvalSteps.find((s) => s.sequence === 2) || leaveReq.approvalSteps[0];
+        leaveReq.approvalSteps.find(
+          (s: (typeof leaveReq.approvalSteps)[number]) => s.sequence === 2
+        ) || leaveReq.approvalSteps[0];
       if (step2) {
         await db.leaveApprovalStep.update({
           where: { id: step2.id },
@@ -291,6 +302,18 @@ export async function rejectLeaveRequestAction(requestId: string, reason?: strin
       return {
         error:
           "Unauthorized: Leave requests for HR staff can ONLY be rejected by the Company Owner."
+      };
+    }
+
+    // This function previously had no role gate at all (any authenticated employee could reject
+    // any non-self, non-HR-target request). Restored to match approveLeaveRequestAction's gate.
+    if (user.roleName !== "manager" && user.roleName !== "hr" && user.roleName !== "owner") {
+      return { error: "Manager or higher role required for rejection." };
+    }
+
+    if (!(await canManagerActOnEmployeeRequest(user, leaveReq.employeeId))) {
+      return {
+        error: "Unauthorized: You can only reject leave requests submitted by your direct reports."
       };
     }
 
