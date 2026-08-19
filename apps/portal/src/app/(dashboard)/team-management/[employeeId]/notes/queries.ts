@@ -9,9 +9,12 @@ import {
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
-export async function getNotesHistoryData(employeeId: string) {
+export async function getNotesHistoryData(employeeId: string, organizationId: string) {
   const [employment, notes] = await Promise.all([
-    db.employment.findUnique({ where: { id: employeeId }, include: employmentAccessInclude() }),
+    db.employment.findFirst({
+      where: { id: employeeId, organizationId },
+      include: employmentAccessInclude()
+    }),
     getEmployeeNotes(employeeId)
   ]);
   const employee = employment

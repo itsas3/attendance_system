@@ -46,16 +46,18 @@ if (
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 
-async function seedE2eAccessFoundation(tx: Prisma.TransactionClient) {
+async function seedE2eAccessFoundation(tx: Prisma.TransactionClient, slug: string, name: string) {
   const organization = await tx.organization.create({
-    data: { name: "E2E Organization", slug: "e2e", timezone: "Asia/Karachi" }
+    data: { name, slug, timezone: "Asia/Karachi" }
   });
 
   const permissionKeys = [...new Set(Object.values(e2eRolePermissions).flat())];
   const permissions = new Map<string, string>();
   for (const key of permissionKeys) {
-    const permission = await tx.permission.create({
-      data: { key, name: titleCase(key), category: key.split("_")[0] ?? "general" }
+    const permission = await tx.permission.upsert({
+      where: { key },
+      create: { key, name: titleCase(key), category: key.split("_")[0] ?? "general" },
+      update: {}
     });
     permissions.set(key, permission.id);
   }
@@ -83,7 +85,8 @@ async function seedE2eAccessFoundation(tx: Prisma.TransactionClient) {
   for (const definition of [
     { code: "EXEC", name: "Executive" },
     { code: "HR", name: "Human Resources" },
-    { code: "ENG", name: "Engineering" }
+    { code: "ENG", name: "Engineering" },
+    { code: "OPS", name: "Operations" }
   ]) {
     const unit = await tx.organizationUnit.create({
       data: { ...definition, organizationId: organization.id, type: "DEPARTMENT" }
@@ -193,7 +196,10 @@ async function main() {
   const passwordHash = hashSync("password123", 10);
 
   await prisma.$transaction(async (tx) => {
-    const access = await seedE2eAccessFoundation(tx);
+    // -------------------------------------------------------------
+    // Organization 1: e2e ("E2E Organization")
+    // -------------------------------------------------------------
+    const access = await seedE2eAccessFoundation(tx, "e2e", "E2E Organization");
     const createEmployment = (input: {
       legalName: string;
       loginEmail: string;
@@ -225,6 +231,13 @@ async function main() {
       unitCode: "ENG",
       positionCode: "MANAGER"
     });
+    const manager2 = await createEmployment({
+      legalName: "E2E Manager 2",
+      loginEmail: "manager-2@e2e.test",
+      employeeCode: "MGR-002",
+      unitCode: "OPS",
+      positionCode: "MANAGER"
+    });
     const hr = await createEmployment({
       legalName: "E2E HR",
       loginEmail: "hr@e2e.test",
@@ -239,11 +252,23 @@ async function main() {
       unitCode: "ENG",
       positionCode: "EMPLOYEE"
     });
+    const employee2 = await createEmployment({
+      legalName: "E2E Employee 2",
+      loginEmail: "employee-2@e2e.test",
+      employeeCode: "EMP-002",
+      unitCode: "OPS",
+      positionCode: "EMPLOYEE"
+    });
 
     await tx.reportingLine.createMany({
       data: [
         {
           subordinateEmploymentId: manager.employment.id,
+          supervisorEmploymentId: owner.employment.id,
+          validFrom: e2eEffectiveDate
+        },
+        {
+          subordinateEmploymentId: manager2.employment.id,
           supervisorEmploymentId: owner.employment.id,
           validFrom: e2eEffectiveDate
         },
@@ -255,6 +280,11 @@ async function main() {
         {
           subordinateEmploymentId: employee.employment.id,
           supervisorEmploymentId: manager.employment.id,
+          validFrom: e2eEffectiveDate
+        },
+        {
+          subordinateEmploymentId: employee2.employment.id,
+          supervisorEmploymentId: manager2.employment.id,
           validFrom: e2eEffectiveDate
         }
       ]
@@ -293,6 +323,14 @@ async function main() {
           status: "PENDING_MANAGER"
         },
         {
+          employeeId: employee2.employment.id,
+          createdByUserAccountId: employee2.account.id,
+          type: "ADD_SCAN",
+          reason: "Manager 2-visible E2E request",
+          requestedTimestamp: new Date("2026-01-12T10:00:00.000Z"),
+          status: "PENDING_MANAGER"
+        },
+        {
           employeeId: hr.employment.id,
           createdByUserAccountId: hr.account.id,
           type: "ADD_SCAN",
@@ -315,6 +353,15 @@ async function main() {
           status: "PENDING_MANAGER"
         },
         {
+          employeeId: employee2.employment.id,
+          leaveTypeId: annualLeave.id,
+          startDate: new Date("2026-02-02T00:00:00.000Z"),
+          endDate: new Date("2026-02-02T00:00:00.000Z"),
+          totalDays: 1,
+          reason: "Manager 2-visible E2E leave",
+          status: "PENDING_MANAGER"
+        },
+        {
           employeeId: manager.employment.id,
           leaveTypeId: annualLeave.id,
           startDate: new Date("2026-02-03T00:00:00.000Z"),
@@ -322,6 +369,113 @@ async function main() {
           totalDays: 1,
           reason: "Organization-visible E2E leave",
           status: "PENDING_HR"
+        }
+      ]
+    });
+
+    // -------------------------------------------------------------
+    // Organization 2: e2e-2 ("Second E2E Organization")
+    // -------------------------------------------------------------
+    const access2 = await seedE2eAccessFoundation(tx, "e2e-2", "Second E2E Organization");
+    const createEmployment2 = (input: {
+      legalName: string;
+      loginEmail: string;
+      employeeCode: string;
+      unitCode: string;
+      positionCode: string;
+    }) =>
+      createE2eEmployment(tx, {
+        organizationId: access2.organization.id,
+        legalName: input.legalName,
+        loginEmail: input.loginEmail,
+        passwordHash,
+        employeeCode: input.employeeCode,
+        unitId: access2.units.get(input.unitCode)!.id,
+        positionId: access2.positions.get(input.positionCode)!.id
+      });
+
+    const owner3 = await createEmployment2({
+      legalName: "E2E Owner 3",
+      loginEmail: "owner-2@e2e.test",
+      employeeCode: "OWNER-003",
+      unitCode: "EXEC",
+      positionCode: "OWNER"
+    });
+    const manager3 = await createEmployment2({
+      legalName: "E2E Manager 3",
+      loginEmail: "manager-3@e2e.test",
+      employeeCode: "MGR-003",
+      unitCode: "ENG",
+      positionCode: "MANAGER"
+    });
+    const employee3 = await createEmployment2({
+      legalName: "E2E Employee 3",
+      loginEmail: "employee-3@e2e.test",
+      employeeCode: "EMP-003",
+      unitCode: "ENG",
+      positionCode: "EMPLOYEE"
+    });
+
+    await tx.reportingLine.createMany({
+      data: [
+        {
+          subordinateEmploymentId: manager3.employment.id,
+          supervisorEmploymentId: owner3.employment.id,
+          validFrom: e2eEffectiveDate
+        },
+        {
+          subordinateEmploymentId: employee3.employment.id,
+          supervisorEmploymentId: manager3.employment.id,
+          validFrom: e2eEffectiveDate
+        }
+      ]
+    });
+
+    await tx.companySetting.create({
+      data: {
+        organizationId: access2.organization.id,
+        key: "weekly_off_days",
+        value: [0]
+      }
+    });
+
+    const annualLeave2 = await tx.leaveTypeConfig.create({
+      data: {
+        organizationId: access2.organization.id,
+        code: "E2E_ANNUAL",
+        name: "E2E Annual Leave",
+        defaultAllocation: 10,
+        accrualFrequency: "ANNUALLY",
+        allowCarryForward: false,
+        maxCarryForwardDays: 0,
+        isPaid: true,
+        isActive: true
+      }
+    });
+
+    await tx.manualAttendanceRequest.createMany({
+      data: [
+        {
+          employeeId: employee3.employment.id,
+          createdByUserAccountId: employee3.account.id,
+          type: "ADD_SCAN",
+          reason: "Organization 2 E2E request",
+          requestedTimestamp: new Date("2026-01-12T09:00:00.000Z"),
+          status: "PENDING_MANAGER"
+        }
+      ]
+    });
+
+    await tx.leaveRequest.createMany({
+      data: [
+        {
+          employeeId: employee3.employment.id,
+          leaveTypeId: annualLeave2.id,
+          startDate: new Date("2026-02-02T00:00:00.000Z"),
+          endDate: new Date("2026-02-02T00:00:00.000Z"),
+          totalDays: 1,
+          reason: "Organization 2 E2E leave",
+          status: "PENDING_MANAGER"
         }
       ]
     });

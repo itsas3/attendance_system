@@ -12,8 +12,8 @@ test-results/
 dist/
 build/
 
-apps/portal/.next/
-apps/portal/out/
+**/.next/
+**/out/
 
 apps/firmware/.pio/
 apps/firmware/compile_commands.json

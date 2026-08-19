@@ -12,12 +12,7 @@ type DashboardShellProps = {
   roleName: string;
 };
 
-export function DashboardShell({
-  children,
-  fullName,
-  modules,
-  roleName
-}: DashboardShellProps) {
+export function DashboardShell({ children, fullName, modules, roleName }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

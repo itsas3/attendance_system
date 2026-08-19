@@ -16,7 +16,7 @@ export default async function EmployeeNotesHistoryPage({
   if (!hasAccess(user, ["my_team", "company_attendance", "team_attendance"]))
     redirect("/team-management");
   const { employeeId } = await params;
-  const data = await getNotesHistoryData(employeeId);
+  const data = await getNotesHistoryData(employeeId, user.organizationId);
   if (!data.employee) notFound();
   return (
     <main className="app-shell">
