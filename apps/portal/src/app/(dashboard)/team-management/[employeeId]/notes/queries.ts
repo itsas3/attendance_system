@@ -9,22 +9,38 @@ import {
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
-export async function getNotesHistoryData(employeeId: string, organizationId: string) {
-  const [employment, notes] = await Promise.all([
-    db.employment.findFirst({
-      where: { id: employeeId, organizationId },
-      include: employmentAccessInclude()
-    }),
-    getEmployeeNotes(employeeId)
-  ]);
-  const employee = employment
-    ? {
-        id: employment.id,
-        fullName: getEmploymentName(employment),
-        email: getEmploymentEmail(employment),
-        employeeCode: employment.employeeCode,
-        role: { name: getEmploymentRoleKey(employment) }
-      }
-    : null;
+export async function getNotesHistoryData(
+  employeeId: string,
+  organizationId: string,
+  viewerEmployeeId?: string,
+  companyWide: boolean = false
+) {
+  const where = companyWide
+    ? { id: employeeId, organizationId }
+    : {
+        id: employeeId,
+        organizationId,
+        subordinateLines: {
+          some: { supervisorEmploymentId: viewerEmployeeId, validUntil: null }
+        }
+      };
+
+  const employment = await db.employment.findFirst({
+    where,
+    include: employmentAccessInclude()
+  });
+
+  if (!employment) {
+    return { employee: null, notes: [] };
+  }
+
+  const notes = await getEmployeeNotes(employeeId);
+  const employee = {
+    id: employment.id,
+    fullName: getEmploymentName(employment),
+    email: getEmploymentEmail(employment),
+    employeeCode: employment.employeeCode,
+    role: { name: getEmploymentRoleKey(employment) }
+  };
   return { employee, notes };
 }

@@ -73,4 +73,29 @@ test.describe("Manager Scoped Team Authorization", () => {
     // Manager 1 should NOT see Employee 2's leave request reason
     await expect(page.getByText("Manager 2-visible E2E leave")).toHaveCount(0);
   });
+
+  test("Manager 2 is blocked from viewing Manager 1's direct report's employee notes history directly via URL", async ({
+    page
+  }) => {
+    // 1. Log in as Manager 1 (Company A) to discover Employee 1's notes URL
+    await login(page, "manager@e2e.test");
+    await page.goto("/team-management");
+
+    const employeeRow = page.locator("article", { hasText: "E2E Employee" });
+    const notesLink = employeeRow.locator('a[title="Previous Notes"]');
+    const href = await notesLink.getAttribute("href");
+    expect(href).not.toBeNull();
+
+    // Sign out
+    await page.getByRole("button", { name: "Sign Out" }).click();
+
+    // 2. Log in as Manager 2 (Company A, managing Employee 2)
+    await login(page, "manager-2@e2e.test");
+
+    // Try to visit Employee 1's notes history page directly
+    await page.goto(href!);
+
+    // Verify it is not found (404)
+    await expect(page.getByText("This page could not be found")).toBeVisible();
+  });
 });
