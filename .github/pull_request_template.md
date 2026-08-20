@@ -1,19 +1,8 @@
 ## Summary
 
-## Scope and acceptance criteria
-
-- Roadmap week / feature key / issue:
-- User-visible outcome:
-- Explicitly out of scope:
-- Architecture decision / reason no ADR is needed:
-
 ## Safety review
 
-- [ ] I read the applicable root and nested `AGENTS.md` files and required documentation
 - [ ] I reviewed all AI-generated code and tests for correctness
-- [ ] Tenant ownership and cross-tenant ID handling are correct or not applicable
-- [ ] Server authorization and resource scope are correct or not applicable
-- [ ] Release flags and subscription entitlements are enforced server-side or not applicable
 - [ ] Validation, audit, idempotency, timezones, and failure/retry behavior are covered or not applicable
 - [ ] No secrets, personal data, biometric data, internal errors, or production payloads are exposed
 - [ ] A qualifying architecture decision is recorded and indexed, or this change is not architectural
