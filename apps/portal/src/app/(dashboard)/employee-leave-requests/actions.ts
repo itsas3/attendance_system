@@ -6,6 +6,7 @@ import { getCurrentUser } from "../../../lib/session";
 
 import { calculateAvailableBalance } from "@attendance/attendance-core";
 import { employmentAccessInclude, getEmploymentRoleKey } from "../../../lib/employment";
+import { hasPermission } from "../../../lib/rbac";
 import { canManagerActOnEmployeeRequest } from "../../../lib/resource-authorization";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
@@ -212,7 +213,8 @@ export async function approveLeaveRequestAction(
 
       if (!(await canManagerActOnEmployeeRequest(user, leaveReq.employeeId))) {
         return {
-          error: "Unauthorized: You can only approve leave requests submitted by your direct reports."
+          error:
+            "Unauthorized: You can only approve leave requests submitted by your direct reports."
         };
       }
 
@@ -333,9 +335,12 @@ export async function rejectLeaveRequestAction(requestId: string, reason?: strin
       };
     }
 
-    // This function previously had no role gate at all (any authenticated employee could reject
-    // any non-self, non-HR-target request). Restored to match approveLeaveRequestAction's gate.
-    if (user.roleName !== "manager" && user.roleName !== "hr" && user.roleName !== "owner") {
+    const hasRejectionAccess =
+      hasPermission(user, "approvals") ||
+      user.roleName === "manager" ||
+      user.roleName === "hr" ||
+      user.roleName === "owner";
+    if (!hasRejectionAccess) {
       return { error: "Manager or higher role required for rejection." };
     }
 

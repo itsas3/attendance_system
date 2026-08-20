@@ -74,7 +74,7 @@ describe("leave request approval — resource-scoped authorization", () => {
     const result = await approveLeaveRequestAction("leave-1");
 
     expect(result).toEqual({
-      error: "Unauthorized: You can only approve leave requests submitted by your direct reports."
+      error: "You are not the direct supervisor for this employee's leave request."
     });
     expect(mocks.db.leaveApprovalStep.update).not.toHaveBeenCalled();
     expect(mocks.db.leaveRequest.update).not.toHaveBeenCalled();
@@ -88,7 +88,7 @@ describe("leave request approval — resource-scoped authorization", () => {
       subordinateEmploymentId: otherTeamEmployee.id
     });
     mocks.db.leaveApprovalStep.update.mockResolvedValue({});
-    mocks.db.employment.findFirst.mockResolvedValue(null); // no HR employee found -> falls back
+    mocks.db.employment.findFirst.mockResolvedValue({ id: "employment-hr-1" });
     mocks.db.leaveApprovalStep.create.mockResolvedValue({});
     mocks.db.leaveRequest.update.mockResolvedValue({});
 
@@ -124,6 +124,28 @@ describe("leave request approval — resource-scoped authorization", () => {
     expect(result).toEqual({ error: "Manager or higher role required for rejection." });
     expect(mocks.db.reportingLine.findFirst).not.toHaveBeenCalled();
     expect(mocks.db.leaveRequest.update).not.toHaveBeenCalled();
+  });
+
+  it("allows an approvals-permission reviewer to reject without a direct-report relationship", async () => {
+    mocks.getCurrentUser.mockResolvedValue({
+      ...manager,
+      roleName: "org_admin",
+      roleKeys: ["org_admin"],
+      permissions: ["approvals"]
+    });
+    mocks.db.leaveRequest.findUnique.mockResolvedValue(pendingManagerLeaveRequest());
+    mocks.db.leaveRequest.update.mockResolvedValue({});
+
+    const result = await rejectLeaveRequestAction("leave-1");
+
+    expect(result).toEqual({ success: true });
+    expect(mocks.db.reportingLine.findFirst).not.toHaveBeenCalled();
+    expect(mocks.db.leaveRequest.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "leave-1" },
+        data: { status: "REJECTED", rejectionReason: "Rejected by approver" }
+      })
+    );
   });
 
   it("allows rejectLeaveRequestAction when the employee is a confirmed direct report", async () => {
