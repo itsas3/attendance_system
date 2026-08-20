@@ -14,12 +14,22 @@ if (command === "build" || command === "start") {
   process.env.NODE_ENV = "development";
 }
 
+const originalPort = process.env.PORT;
+const originalDatabaseUrl = process.env.DATABASE_URL;
+
 if (existsSync(rootEnvPath)) {
   loadEnvFile(rootEnvPath);
 }
 
 if (existsSync(appEnvPath)) {
   loadEnvFile(appEnvPath);
+}
+
+if (originalPort) {
+  process.env.PORT = originalPort;
+}
+if (originalDatabaseUrl) {
+  process.env.DATABASE_URL = originalDatabaseUrl;
 }
 
 if (command !== "build" && !process.env.PORT) {

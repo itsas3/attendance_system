@@ -24,7 +24,8 @@ function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       env: e2eEnv,
-      stdio: options.quiet ? "ignore" : "inherit"
+      stdio: options.quiet ? "ignore" : "inherit",
+      shell: process.platform === "win32"
     });
 
     child.on("error", reject);

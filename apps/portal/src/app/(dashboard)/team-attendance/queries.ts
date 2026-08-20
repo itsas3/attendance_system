@@ -2,6 +2,7 @@ import { evaluateShiftAttendance } from "@attendance/attendance-core";
 import { createPrismaClient } from "@attendance/db";
 import type { TeamAttendanceData, TeamAttendanceRow, TeamAttendanceStatus } from "./types";
 import {
+  currentReportingLineWhere,
   employmentAccessInclude,
   getEmploymentEmail,
   getEmploymentName,
@@ -60,7 +61,12 @@ export async function getTeamAttendanceData(
       : {
           organizationId,
           status: "ACTIVE",
-          subordinateLines: { some: { supervisorEmploymentId: employeeId, validUntil: null } }
+          subordinateLines: {
+            some: {
+              supervisorEmploymentId: employeeId,
+              ...currentReportingLineWhere()
+            }
+          }
         },
     include: {
       ...employmentAccessInclude(),

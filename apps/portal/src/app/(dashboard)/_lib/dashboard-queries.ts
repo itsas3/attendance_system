@@ -1,4 +1,5 @@
 import { createPrismaClient } from "@attendance/db";
+import { currentReportingLineWhere } from "../../../lib/employment";
 import { hasPermission } from "../../../lib/rbac";
 import type { SessionUser } from "../../../lib/session";
 
@@ -8,11 +9,11 @@ export async function getDashboardCounts(user: SessionUser) {
   const role = user.roleName.toLowerCase();
   const managerWhere = {
     employee: {
+      organizationId: user.organizationId,
       subordinateLines: {
         some: {
           supervisorEmploymentId: user.employeeId,
-          validUntil: null,
-          type: "PRIMARY" as const
+          ...currentReportingLineWhere()
         }
       }
     },
@@ -21,7 +22,10 @@ export async function getDashboardCounts(user: SessionUser) {
   const pendingWhere =
     role === "manager"
       ? { status: "PENDING_MANAGER" as const, ...managerWhere }
-      : { status: { in: ["PENDING_MANAGER" as const, "PENDING_HR" as const] } };
+      : {
+          status: { in: ["PENDING_MANAGER" as const, "PENDING_HR" as const] },
+          employee: { organizationId: user.organizationId }
+        };
 
   const [pendingAttendance, pendingLeave, employee] = await Promise.all([
     hasPermission(user, "approvals")

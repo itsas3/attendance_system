@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { hasAccess } from "../../../../../lib/rbac";
+import { hasAccess, hasPermission } from "../../../../../lib/rbac";
 import { requireCurrentUser } from "../../../../../lib/session";
 import { NotesHistoryView } from "./_components/notes-history-view";
 import { getNotesHistoryData } from "./queries";
@@ -16,7 +16,12 @@ export default async function EmployeeNotesHistoryPage({
   if (!hasAccess(user, ["my_team", "company_attendance", "team_attendance"]))
     redirect("/team-management");
   const { employeeId } = await params;
-  const data = await getNotesHistoryData(employeeId);
+  const data = await getNotesHistoryData(
+    employeeId,
+    user.organizationId,
+    user.employeeId,
+    hasPermission(user, "company_attendance")
+  );
   if (!data.employee) notFound();
   return (
     <main className="app-shell">

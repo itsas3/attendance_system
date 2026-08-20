@@ -5,6 +5,7 @@ import type {
   TeamMemberSummary
 } from "./types";
 import {
+  currentReportingLineWhere,
   employmentAccessInclude,
   getEmploymentEmail,
   getEmploymentName,
@@ -24,7 +25,12 @@ export async function getTeamManagementData(
       : {
           organizationId,
           status: "ACTIVE",
-          subordinateLines: { some: { supervisorEmploymentId: employeeId, validUntil: null } }
+          subordinateLines: {
+            some: {
+              supervisorEmploymentId: employeeId,
+              ...currentReportingLineWhere()
+            }
+          }
         },
     include: employmentAccessInclude(),
     orderBy: { employeeCode: "asc" }

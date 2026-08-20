@@ -19,8 +19,8 @@ build/
 coverage/
 playwright-report/
 test-results/
-apps/portal/.next/
-apps/portal/out/
+**/.next/
+**/out/
 apps/portal/next-env.d.ts
 
 # Generated firmware files

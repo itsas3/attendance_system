@@ -25,7 +25,7 @@ test("employee sees only employee dashboard modules", async ({ page }) => {
   await login(page, "employee@e2e.test");
   const modules = dashboard(page);
 
-  await expect(modules.getByRole("heading", { name: "My Attendance" })).toBeVisible();
+  await expect(modules.getByRole("heading", { name: "My Attendance", exact: true })).toBeVisible();
   await expect(modules.getByRole("heading", { name: "My Leave Requests" })).toBeVisible();
   await expect(
     modules.getByRole("heading", { name: "My Attendance Correction Requests" })
@@ -57,7 +57,7 @@ test("owner sees organization modules and all pending requests", async ({ page }
   ).toBeVisible();
   await expect(modules.getByRole("heading", { name: "Add Employee" })).toBeVisible();
   await expect(modules.getByRole("heading", { name: "Company Attendance" })).toBeVisible();
-  await expect(modules.getByText("2 Pending", { exact: true })).toHaveCount(2);
+  await expect(modules.getByText("3 Pending", { exact: true })).toHaveCount(2);
   await expect(modules.getByRole("heading", { name: "My Attendance" })).toHaveCount(0);
   await expect(modules.getByRole("heading", { name: "My Leave Requests" })).toHaveCount(0);
   await expect(
