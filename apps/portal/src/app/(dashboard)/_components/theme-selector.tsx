@@ -79,6 +79,69 @@ function ThemeMenuItem({
   );
 }
 
+function ThemeMenuDropdown({
+  activeTheme,
+  onSelect
+}: {
+  activeTheme: ThemeKey;
+  onSelect: (key: ThemeKey) => void;
+}) {
+  const lightThemes = themes.filter((t) => t.category === "Light");
+  const darkThemes = themes.filter((t) => t.category === "Dark");
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "calc(100% + 8px)",
+        right: 0,
+        width: "230px",
+        background: "var(--background-secondary)",
+        border: "1px solid var(--border)",
+        borderRadius: "14px",
+        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+        padding: "8px",
+        zIndex: 100,
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px"
+      }}
+    >
+      <div
+        style={{
+          padding: "4px 8px",
+          fontSize: "0.7rem",
+          fontWeight: 700,
+          color: "var(--muted)",
+          textTransform: "uppercase"
+        }}
+      >
+        Light Themes
+      </div>
+      {lightThemes.map((t) => (
+        <ThemeMenuItem key={t.key} active={activeTheme === t.key} option={t} onSelect={onSelect} />
+      ))}
+
+      <div
+        style={{
+          padding: "8px 8px 4px",
+          fontSize: "0.7rem",
+          fontWeight: 700,
+          color: "var(--muted)",
+          textTransform: "uppercase",
+          borderTop: "1px solid var(--border)",
+          marginTop: "4px"
+        }}
+      >
+        Dark Themes
+      </div>
+      {darkThemes.map((t) => (
+        <ThemeMenuItem key={t.key} active={activeTheme === t.key} option={t} onSelect={onSelect} />
+      ))}
+    </div>
+  );
+}
+
 export function ThemeSelector() {
   const [activeTheme, setActiveTheme] = useState<ThemeKey>("purple");
   const [isOpen, setIsOpen] = useState(false);
@@ -145,43 +208,7 @@ export function ThemeSelector() {
         <span style={{ fontSize: "0.7rem", opacity: 0.7 }}>{isOpen ? "▲" : "▼"}</span>
       </button>
 
-      {isOpen && (
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 8px)",
-            right: 0,
-            width: "230px",
-            background: "var(--background-secondary)",
-            border: "1px solid var(--border)",
-            borderRadius: "14px",
-            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
-            padding: "8px",
-            zIndex: 100,
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px"
-          }}
-        >
-          <div style={{ padding: "4px 8px", fontSize: "0.7rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>
-            Light Themes
-          </div>
-          {themes
-            .filter((t) => t.category === "Light")
-            .map((t) => (
-              <ThemeMenuItem key={t.key} active={activeTheme === t.key} option={t} onSelect={changeTheme} />
-            ))}
-
-          <div style={{ padding: "8px 8px 4px", fontSize: "0.7rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", borderTop: "1px solid var(--border)", marginTop: "4px" }}>
-            Dark Themes
-          </div>
-          {themes
-            .filter((t) => t.category === "Dark")
-            .map((t) => (
-              <ThemeMenuItem key={t.key} active={activeTheme === t.key} option={t} onSelect={changeTheme} />
-            ))}
-        </div>
-      )}
+      {isOpen && <ThemeMenuDropdown activeTheme={activeTheme} onSelect={changeTheme} />}
     </div>
   );
 }

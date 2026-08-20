@@ -19,7 +19,11 @@ type PersonalRecordsData = {
 };
 
 const initialState: PersonalRecordsState = {};
-const readOnlyStyle = { opacity: 0.85, cursor: "not-allowed", background: "var(--background-secondary)" };
+const readOnlyStyle = {
+  opacity: 0.85,
+  cursor: "not-allowed",
+  background: "var(--background-secondary)"
+};
 
 function StaffProfileFields({ data }: { data: PersonalRecordsData }) {
   const fields = [
@@ -29,15 +33,31 @@ function StaffProfileFields({ data }: { data: PersonalRecordsData }) {
     ["Assigned Role", data.roleName, "text"]
   ];
   return (
-    <section id="staff-profile" style={{ borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}>
-      <h3 style={{ color: "var(--accent)", margin: "0 0 16px 0", fontSize: "1.2rem", fontWeight: 700 }}>
+    <section
+      id="staff-profile"
+      style={{ borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}
+    >
+      <h3
+        style={{
+          color: "var(--accent)",
+          margin: "0 0 16px 0",
+          fontSize: "1.2rem",
+          fontWeight: 700
+        }}
+      >
         Staff Profile (Read-only)
       </h3>
       <div className="form-grid">
         {fields.map(([label, value, type]) => (
           <div className="form-group" key={label}>
             <label>{label}</label>
-            <input type={type} className="form-control" value={value} readOnly style={readOnlyStyle} />
+            <input
+              type={type}
+              className="form-control"
+              value={value}
+              readOnly
+              style={readOnlyStyle}
+            />
           </div>
         ))}
       </div>
@@ -47,18 +67,39 @@ function StaffProfileFields({ data }: { data: PersonalRecordsData }) {
 
 function BioDataFields({ data }: { data: PersonalRecordsData }) {
   return (
-    <section id="bio-data" style={{ borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}>
-      <h3 style={{ color: "var(--accent)", margin: "0 0 16px 0", fontSize: "1.2rem", fontWeight: 700 }}>
+    <section
+      id="bio-data"
+      style={{ borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}
+    >
+      <h3
+        style={{
+          color: "var(--accent)",
+          margin: "0 0 16px 0",
+          fontSize: "1.2rem",
+          fontWeight: 700
+        }}
+      >
         Bio-data
       </h3>
       <div className="form-grid">
         <div className="form-group">
           <label htmlFor="dateOfBirth">Date of Birth</label>
-          <input id="dateOfBirth" name="dateOfBirth" type="date" className="form-control" defaultValue={data.dateOfBirth || ""} />
+          <input
+            id="dateOfBirth"
+            name="dateOfBirth"
+            type="date"
+            className="form-control"
+            defaultValue={data.dateOfBirth || ""}
+          />
         </div>
         <div className="form-group">
           <label htmlFor="gender">Gender</label>
-          <select id="gender" name="gender" className="form-control" defaultValue={data.gender || ""}>
+          <select
+            id="gender"
+            name="gender"
+            className="form-control"
+            defaultValue={data.gender || ""}
+          >
             <option value="">Select Gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
@@ -67,7 +108,12 @@ function BioDataFields({ data }: { data: PersonalRecordsData }) {
         </div>
         <div className="form-group">
           <label htmlFor="maritalStatus">Marital Status</label>
-          <select id="maritalStatus" name="maritalStatus" className="form-control" defaultValue={data.maritalStatus || ""}>
+          <select
+            id="maritalStatus"
+            name="maritalStatus"
+            className="form-control"
+            defaultValue={data.maritalStatus || ""}
+          >
             <option value="">Select Status</option>
             <option value="single">Single</option>
             <option value="married">Married</option>
@@ -82,22 +128,48 @@ function BioDataFields({ data }: { data: PersonalRecordsData }) {
 
 function ContactFields({ data }: { data: PersonalRecordsData }) {
   return (
-    <section id="contact-details" style={{ borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}>
-      <h3 style={{ color: "var(--accent)", margin: "0 0 16px 0", fontSize: "1.2rem", fontWeight: 700 }}>
+    <section
+      id="contact-details"
+      style={{ borderBottom: "1px solid var(--border)", paddingBottom: "24px" }}
+    >
+      <h3
+        style={{
+          color: "var(--accent)",
+          margin: "0 0 16px 0",
+          fontSize: "1.2rem",
+          fontWeight: 700
+        }}
+      >
         Contact Details
       </h3>
       <div className="form-grid">
         <div className="form-group">
           <label htmlFor="phone">Phone Number</label>
-          <input id="phone" name="phone" type="tel" className="form-control" defaultValue={data.phone || ""} />
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            className="form-control"
+            defaultValue={data.phone || ""}
+          />
         </div>
         <div className="form-group">
           <label htmlFor="currentAddress">Current Address</label>
-          <input id="currentAddress" name="currentAddress" className="form-control" defaultValue={data.currentAddress || ""} />
+          <input
+            id="currentAddress"
+            name="currentAddress"
+            className="form-control"
+            defaultValue={data.currentAddress || ""}
+          />
         </div>
         <div className="form-group">
           <label htmlFor="permanentAddress">Permanent Address</label>
-          <input id="permanentAddress" name="permanentAddress" className="form-control" defaultValue={data.permanentAddress || ""} />
+          <input
+            id="permanentAddress"
+            name="permanentAddress"
+            className="form-control"
+            defaultValue={data.permanentAddress || ""}
+          />
         </div>
       </div>
     </section>
@@ -107,17 +179,35 @@ function ContactFields({ data }: { data: PersonalRecordsData }) {
 function EmergencyContactFields({ data }: { data: PersonalRecordsData }) {
   return (
     <section id="emergency-contact">
-      <h3 style={{ color: "var(--accent)", margin: "0 0 16px 0", fontSize: "1.2rem", fontWeight: 700 }}>
+      <h3
+        style={{
+          color: "var(--accent)",
+          margin: "0 0 16px 0",
+          fontSize: "1.2rem",
+          fontWeight: 700
+        }}
+      >
         Emergency Contact Information
       </h3>
       <div className="form-grid">
         <div className="form-group">
           <label htmlFor="emergencyContactName">Contact Name</label>
-          <input id="emergencyContactName" name="emergencyContactName" className="form-control" defaultValue={data.emergencyContactName || ""} />
+          <input
+            id="emergencyContactName"
+            name="emergencyContactName"
+            className="form-control"
+            defaultValue={data.emergencyContactName || ""}
+          />
         </div>
         <div className="form-group">
           <label htmlFor="emergencyContactPhone">Contact Phone</label>
-          <input id="emergencyContactPhone" name="emergencyContactPhone" type="tel" className="form-control" defaultValue={data.emergencyContactPhone || ""} />
+          <input
+            id="emergencyContactPhone"
+            name="emergencyContactPhone"
+            type="tel"
+            className="form-control"
+            defaultValue={data.emergencyContactPhone || ""}
+          />
         </div>
       </div>
     </section>

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { updateWeeklyOffDays } from "../actions";
-import { weekdayNames } from "../queries";
+import { weekdayNames } from "../constants";
 
 const policies = [
   {

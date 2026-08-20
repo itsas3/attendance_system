@@ -90,8 +90,16 @@ export function ManualRequestModal({ isOpen, onClose }: ManualRequestModalProps)
           Request a missing attendance punch. Your request will be sent to HR for approval.
         </p>
 
-        {state.error && <div className="alert-error" role="alert">⚠️ {state.error}</div>}
-        {state.success && <div className="alert-success" role="status">✅ {state.success}</div>}
+        {state.error && (
+          <div className="alert-error" role="alert">
+            ⚠️ {state.error}
+          </div>
+        )}
+        {state.success && (
+          <div className="alert-success" role="status">
+            ✅ {state.success}
+          </div>
+        )}
 
         <form
           ref={formRef}
@@ -99,7 +107,9 @@ export function ManualRequestModal({ isOpen, onClose }: ManualRequestModalProps)
           style={{ display: "flex", flexDirection: "column", gap: "16px" }}
         >
           <ManualRequestFormFields />
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "12px" }}>
+          <div
+            style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "12px" }}
+          >
             <button type="button" className="logout-btn" onClick={onClose} disabled={isPending}>
               Cancel
             </button>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createPrismaClient } from "@attendance/db";
 import { logout } from "../../(auth)/login/actions";
 import { PersonalRecordsForm } from "./personal-records-form";
+import { ThemeSettingsSection } from "./theme-settings-section";
 
 export const dynamic = "force-dynamic";
 
@@ -61,8 +62,9 @@ export default async function PersonalRecordsPage() {
         </form>
       </header>
 
-      <section>
+      <section style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
         <PersonalRecordsForm initialData={initialData} />
+        <ThemeSettingsSection />
       </section>
     </main>
   );

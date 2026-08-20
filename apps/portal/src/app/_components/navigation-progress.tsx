@@ -29,15 +29,23 @@ export function NavigationProgress() {
       if (!anchor) return;
 
       const href = anchor.getAttribute("href");
-      if (!href || href.startsWith("#") || href.startsWith("javascript:") || anchor.target === "_blank") {
+      if (
+        !href ||
+        href.startsWith("#") ||
+        href.startsWith("javascript:") ||
+        anchor.target === "_blank"
+      ) {
         return;
       }
 
       // Check if URL is internal and different from current location
       const currentUrl = window.location.pathname + window.location.search;
       const targetUrl = new URL(anchor.href, window.location.origin);
-      
-      if (targetUrl.origin === window.location.origin && (targetUrl.pathname + targetUrl.search) !== currentUrl) {
+
+      if (
+        targetUrl.origin === window.location.origin &&
+        targetUrl.pathname + targetUrl.search !== currentUrl
+      ) {
         setVisible(true);
         setProgress(30);
 

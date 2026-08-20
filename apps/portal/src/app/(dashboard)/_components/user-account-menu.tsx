@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { logout } from "../../(auth)/login/actions";
-import { ThemeSelector } from "./theme-selector";
 
 type UserAccountMenuProps = {
   fullName: string;
@@ -17,6 +16,76 @@ function getInitials(fullName: string): string {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+}
+
+function UserAccountDropdown({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "calc(100% + 8px)",
+        right: 0,
+        width: "190px",
+        background: "var(--background-secondary)",
+        border: "1px solid var(--border)",
+        borderRadius: "14px",
+        boxShadow: "0 16px 36px rgba(0, 0, 0, 0.4)",
+        padding: "8px",
+        zIndex: 100,
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px"
+      }}
+    >
+      <Link
+        href="/my-profile"
+        onClick={onClose}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          padding: "10px 12px",
+          borderRadius: "10px",
+          background: "transparent",
+          color: "var(--text)",
+          textDecoration: "none",
+          fontSize: "0.88rem",
+          fontWeight: 500,
+          transition: "background 0.15s ease"
+        }}
+        className="dropdown-menu-item"
+      >
+        <span>⚙️</span>
+        <span>Settings</span>
+      </Link>
+
+      <form action={logout} style={{ width: "100%" }}>
+        <button
+          type="submit"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "10px 12px",
+            borderRadius: "10px",
+            background: "rgba(239, 68, 68, 0.1)",
+            border: "none",
+            color: "#ef4444",
+            fontSize: "0.88rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            textAlign: "left",
+            transition: "background 0.15s ease"
+          }}
+          className="dropdown-menu-signout"
+        >
+          <span>🚪</span>
+          <span>Sign Out</span>
+        </button>
+      </form>
+    </div>
+  );
 }
 
 export function UserAccountMenu({ fullName, roleName }: UserAccountMenuProps) {
@@ -45,7 +114,8 @@ export function UserAccountMenu({ fullName, roleName }: UserAccountMenuProps) {
           background: "transparent",
           border: "none",
           cursor: "pointer",
-          padding: 0,
+          padding: "6px 10px",
+          borderRadius: "10px",
           display: "flex",
           alignItems: "center",
           gap: "10px"
@@ -58,99 +128,20 @@ export function UserAccountMenu({ fullName, roleName }: UserAccountMenuProps) {
           <strong>{fullName}</strong>
           <span>{roleName}</span>
         </span>
-        <span style={{ fontSize: "0.7rem", color: "var(--muted)", opacity: 0.7, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }}>
+        <span
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--muted)",
+            opacity: 0.7,
+            transform: isOpen ? "rotate(180deg)" : "none",
+            transition: "transform 0.2s ease"
+          }}
+        >
           ▼
         </span>
       </button>
 
-      {isOpen && (
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 12px)",
-            right: 0,
-            width: "260px",
-            background: "var(--background-secondary)",
-            border: "1px solid var(--border)",
-            borderRadius: "16px",
-            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.45)",
-            padding: "16px",
-            zIndex: 100,
-            display: "flex",
-            flexDirection: "column",
-            gap: "14px"
-          }}
-        >
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", paddingBottom: "12px", borderBottom: "1px solid var(--border)" }}>
-            <span className="dashboard-avatar" aria-hidden="true" style={{ width: "34px", height: "34px", fontSize: "0.75rem" }}>
-              {getInitials(fullName)}
-            </span>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <strong style={{ fontSize: "0.9rem", color: "var(--text)" }}>{fullName}</strong>
-              <span style={{ fontSize: "0.75rem", color: "var(--muted)", textTransform: "capitalize" }}>{roleName}</span>
-            </div>
-          </div>
-
-          {/* Profile Link */}
-          <Link
-            href="/my-profile"
-            onClick={() => setIsOpen(false)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "10px 12px",
-              borderRadius: "10px",
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid var(--border)",
-              color: "var(--text)",
-              textDecoration: "none",
-              fontSize: "0.88rem",
-              fontWeight: 600
-            }}
-          >
-            <span>👤</span>
-            <span>My Profile & Settings</span>
-          </Link>
-
-          {/* Theme Selector */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Theme Settings
-            </span>
-            <ThemeSelector />
-          </div>
-
-          {/* Sign Out Action */}
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "12px" }}>
-            <form action={logout}>
-              <button
-                type="submit"
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
-                  border: "none",
-                  color: "#ffffff",
-                  fontSize: "0.88rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.25)",
-                  transition: "transform 0.15s ease, opacity 0.15s ease"
-                }}
-              >
-                <span>Sign Out</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {isOpen && <UserAccountDropdown onClose={() => setIsOpen(false)} />}
     </div>
   );
 }
