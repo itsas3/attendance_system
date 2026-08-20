@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useDeferredValue, useState, useTransition } from "react";
 import { countEmployeesByRole, filterEmployees } from "../_lib/employee-filters";
 import { EmployeeDirectoryFilters } from "./employee-directory-filters";
 import { EmployeeDirectoryHeader } from "./employee-directory-header";
@@ -12,10 +12,10 @@ export function EmployeeDirectory({ employees }: { employees: EmployeeRecord[] }
   const [roleFilter, setRoleFilter] = useState("all");
   const [isFiltering, startTransition] = useTransition();
 
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
   const handleSearchChange = (term: string) => {
-    startTransition(() => {
-      setSearchTerm(term);
-    });
+    setSearchTerm(term);
   };
 
   const handleRoleChange = (role: string) => {
@@ -24,7 +24,8 @@ export function EmployeeDirectory({ employees }: { employees: EmployeeRecord[] }
     });
   };
 
-  const filteredEmployees = filterEmployees(employees, searchTerm, roleFilter);
+  const isSearching = searchTerm !== deferredSearchTerm || isFiltering;
+  const filteredEmployees = filterEmployees(employees, deferredSearchTerm, roleFilter);
   const roleCounts = countEmployeesByRole(employees);
 
   return (
@@ -33,7 +34,7 @@ export function EmployeeDirectory({ employees }: { employees: EmployeeRecord[] }
       <EmployeeDirectoryFilters
         roleFilter={roleFilter}
         searchTerm={searchTerm}
-        isFiltering={isFiltering}
+        isFiltering={isSearching}
         setRoleFilter={handleRoleChange}
         setSearchTerm={handleSearchChange}
       />

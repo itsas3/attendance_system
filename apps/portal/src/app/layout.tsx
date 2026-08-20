@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { NavigationProgress } from "./_components/navigation-progress";
 import { ThemeInitializer } from "./_components/theme-initializer";
 import "./globals.css";
 
@@ -7,16 +9,30 @@ export const metadata: Metadata = {
   description: "Employee and workforce management portal"
 };
 
-const themeScript = `(function(){try{var s=localStorage.getItem('portal_theme');if(s){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();`;
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('portal_theme');
+                  if (saved) {
+                    document.documentElement.setAttribute('data-theme', saved);
+                  }
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
       </head>
       <body>
         <ThemeInitializer />
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {children}
       </body>
     </html>

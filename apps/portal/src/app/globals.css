@@ -190,6 +190,8 @@
   --banner-bg-start: #f8fafc;
   --banner-bg-end: #f1f5f9;
   --banner-border: #e2e8f0;
+  --banner-title-color: #0f172a;
+  --banner-dates-color: #1d4ed8;
   --welcome-label-color: #2563eb;
   --role-badge-bg: rgba(37, 99, 235, 0.08);
   --role-badge-border: rgba(37, 99, 235, 0.2);
@@ -226,6 +228,8 @@
   --banner-bg-start: rgba(124, 58, 237, 0.08);
   --banner-bg-end: rgba(168, 85, 247, 0.08);
   --banner-border: rgba(124, 58, 237, 0.2);
+  --banner-title-color: #3b0764;
+  --banner-dates-color: #7c3aed;
   --welcome-label-color: #7c3aed;
   --role-badge-bg: rgba(124, 58, 237, 0.1);
   --role-badge-border: rgba(124, 58, 237, 0.25);
@@ -262,6 +266,8 @@
   --banner-bg-start: rgba(2, 132, 199, 0.08);
   --banner-bg-end: rgba(56, 189, 248, 0.08);
   --banner-border: rgba(2, 132, 199, 0.2);
+  --banner-title-color: #0c4a6e;
+  --banner-dates-color: #0284c7;
   --welcome-label-color: #0284c7;
   --role-badge-bg: rgba(2, 132, 199, 0.1);
   --role-badge-border: rgba(2, 132, 199, 0.25);
@@ -298,6 +304,8 @@
   --banner-bg-start: rgba(16, 185, 129, 0.08);
   --banner-bg-end: rgba(52, 211, 153, 0.08);
   --banner-border: rgba(16, 185, 129, 0.2);
+  --banner-title-color: #064e3b;
+  --banner-dates-color: #047857;
   --welcome-label-color: #059669;
   --role-badge-bg: rgba(16, 185, 129, 0.1);
   --role-badge-border: rgba(16, 185, 129, 0.25);
@@ -865,14 +873,14 @@ a {
 }
 
 .banner-title {
+  color: var(--banner-title-color, var(--text));
   font-size: 1.1rem;
   font-weight: 600;
-  color: #e2e8f0;
 }
 
 .banner-dates {
+  color: var(--banner-dates-color, var(--accent));
   font-size: 0.95rem;
-  color: #a7f3d0;
   font-weight: 500;
 }
 
