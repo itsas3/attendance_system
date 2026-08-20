@@ -1,5 +1,6 @@
 import { createPrismaClient } from "@attendance/db";
 import {
+  currentReportingLineWhere,
   employmentAccessInclude,
   getEmploymentEmail,
   getEmploymentName,
@@ -18,7 +19,10 @@ export async function getEmployeeAttendanceCorrectionRequests(
       ? {
           employee: {
             subordinateLines: {
-              some: { supervisorEmploymentId: user.employeeId, validUntil: null }
+              some: {
+                supervisorEmploymentId: user.employeeId,
+                ...currentReportingLineWhere()
+              }
             }
           },
           employeeId: { not: user.employeeId }

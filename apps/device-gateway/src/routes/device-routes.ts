@@ -175,6 +175,7 @@ deviceRouter.post("/scans", async (req, res) => {
 
     const data = {
       deviceId: device.id,
+      organizationId: device.organizationId,
       deviceScanSequence: scan.deviceScanSequence,
       employeeId: enrollment?.employeeId,
       firmwareVersion: scan.firmwareVersion,

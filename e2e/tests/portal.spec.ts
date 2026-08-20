@@ -57,7 +57,7 @@ test("owner sees organization modules and all pending requests", async ({ page }
   ).toBeVisible();
   await expect(modules.getByRole("heading", { name: "Add Employee" })).toBeVisible();
   await expect(modules.getByRole("heading", { name: "Company Attendance" })).toBeVisible();
-  await expect(modules.getByText("4 Pending", { exact: true })).toHaveCount(2);
+  await expect(modules.getByText("3 Pending", { exact: true })).toHaveCount(2);
   await expect(modules.getByRole("heading", { name: "My Attendance" })).toHaveCount(0);
   await expect(modules.getByRole("heading", { name: "My Leave Requests" })).toHaveCount(0);
   await expect(

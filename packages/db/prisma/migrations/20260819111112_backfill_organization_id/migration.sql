@@ -1,0 +1,11 @@
+UPDATE "Device" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "ScanEvent" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "Shift" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "Holiday" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "JobPosting" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "Announcement" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "LeaveTypeConfig" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "PerformanceTemplate" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "AuditLog" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "Notification" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;
+UPDATE "ReportExport" SET "organizationId" = (SELECT id FROM "Organization" WHERE slug = 'default') WHERE "organizationId" IS NULL;

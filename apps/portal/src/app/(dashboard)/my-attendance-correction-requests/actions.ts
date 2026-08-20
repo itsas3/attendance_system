@@ -6,6 +6,7 @@ import { createPrismaClient } from "@attendance/db";
 import { revalidatePath } from "next/cache";
 import type { AttendanceCorrectionRequestState } from "./types";
 import { employmentAccessInclude, getEmploymentRoleKey } from "../../../lib/employment";
+import { canManagerActOnEmployeeRequest } from "../../../lib/resource-authorization";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
@@ -150,6 +151,12 @@ export async function approveRequest(requestId: string): Promise<AttendanceCorre
       };
     }
 
+    if (!(await canManagerActOnEmployeeRequest(user, request.employeeId))) {
+      return {
+        error: "Unauthorized: You can only approve requests submitted by your direct reports."
+      };
+    }
+
     await db.manualAttendanceRequest.update({
       where: { id: requestId },
       data: { status: "PENDING_HR" }
@@ -248,6 +255,26 @@ export async function rejectRequest(requestId: string): Promise<AttendanceCorrec
 
   if (isSelf && user.roleName !== "owner") {
     return { error: "Unauthorized: You cannot reject your own manual attendance request." };
+  }
+
+  // This function previously had no role gate at all (any authenticated employee could reject
+  // any non-self, non-HR-target request). Restored to match approveRequest's gate.
+  const canReject =
+    hasPermission(user, "approvals") ||
+    ["manager", "supervisor", "team_lead", "owner", "admin", "hr"].includes(
+      user.roleName?.toLowerCase() ?? ""
+    );
+
+  if (!canReject) {
+    return {
+      error: "Unauthorized: Rejection must be completed by an authorized Manager, HR, or Approver."
+    };
+  }
+
+  if (!(await canManagerActOnEmployeeRequest(user, request.employeeId))) {
+    return {
+      error: "Unauthorized: You can only reject requests submitted by your direct reports."
+    };
   }
 
   await db.manualAttendanceRequest.update({

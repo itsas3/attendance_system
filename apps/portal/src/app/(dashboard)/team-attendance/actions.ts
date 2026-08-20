@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "../../../lib/session";
 import { createPrismaClient } from "@attendance/db";
 import {
+  currentReportingLineWhere,
   employmentAccessInclude,
   getEmploymentName,
   getEmploymentRoleKey
 } from "../../../lib/employment";
+import { hasPermission } from "../../../lib/rbac";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
@@ -23,6 +25,26 @@ export async function addEmployeeNote(formData: FormData) {
 
   if (!employeeId || !content || !content.trim()) {
     throw new Error("Employee ID and note content are required.");
+  }
+
+  const companyWide = hasPermission(user, "company_attendance");
+  const targetEmployment = await db.employment.findFirst({
+    where: companyWide
+      ? { id: employeeId, organizationId: user.organizationId }
+      : {
+          id: employeeId,
+          organizationId: user.organizationId,
+          subordinateLines: {
+            some: {
+              supervisorEmploymentId: user.employeeId,
+              ...currentReportingLineWhere()
+            }
+          }
+        }
+  });
+
+  if (!targetEmployment) {
+    throw new Error("Unauthorized or employee not found.");
   }
 
   await db.employeeNote.create({
@@ -86,8 +108,8 @@ export async function submitPerformanceEvaluation(data: {
   }
 
   // Verify template is active
-  const template = await db.performanceTemplate.findUnique({
-    where: { id: templateId }
+  const template = await db.performanceTemplate.findFirst({
+    where: { id: templateId, organizationId: user.organizationId }
   });
 
   if (!template) {
