@@ -5,11 +5,7 @@ import { hasPermission } from "../../../lib/rbac";
 import { createPrismaClient } from "@attendance/db";
 import { revalidatePath } from "next/cache";
 import type { AttendanceCorrectionRequestState } from "./types";
-import {
-  currentReportingLineWhere,
-  employmentAccessInclude,
-  getEmploymentRoleKey
-} from "../../../lib/employment";
+import { employmentAccessInclude, getEmploymentRoleKey } from "../../../lib/employment";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
@@ -49,7 +45,8 @@ export async function submitManualRequest(
   const managerLine = await db.reportingLine.findFirst({
     where: {
       subordinateEmploymentId: user.employeeId,
-      ...currentReportingLineWhere()
+      type: "PRIMARY",
+      validUntil: null
     }
   });
 
@@ -90,8 +87,8 @@ export async function approveRequest(requestId: string): Promise<AttendanceCorre
     return { error: "Unauthorized: Please log in." };
   }
 
-  const request = await db.manualAttendanceRequest.findFirst({
-    where: { id: requestId, employee: { organizationId: user.organizationId } },
+  const request = await db.manualAttendanceRequest.findUnique({
+    where: { id: requestId },
     include: {
       employee: {
         include: employmentAccessInclude()
@@ -225,8 +222,8 @@ export async function rejectRequest(requestId: string): Promise<AttendanceCorrec
     return { error: "Unauthorized: Please log in." };
   }
 
-  const request = await db.manualAttendanceRequest.findFirst({
-    where: { id: requestId, employee: { organizationId: user.organizationId } },
+  const request = await db.manualAttendanceRequest.findUnique({
+    where: { id: requestId },
     include: {
       employee: {
         include: employmentAccessInclude()
@@ -274,8 +271,8 @@ export async function deleteManualRequest(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
 
-  const request = await db.manualAttendanceRequest.findFirst({
-    where: { id, employee: { organizationId: user.organizationId } }
+  const request = await db.manualAttendanceRequest.findUnique({
+    where: { id }
   });
 
   if (!request) return;
