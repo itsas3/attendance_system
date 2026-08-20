@@ -1093,10 +1093,10 @@ a {
 }
 
 .form-control,
-.modal-content input,
+.modal-content input:not([type="checkbox"]):not([type="radio"]),
 .modal-content select,
 .modal-content textarea,
-.modal-card input,
+.modal-card input:not([type="checkbox"]):not([type="radio"]),
 .modal-card select,
 .modal-card textarea {
   background: var(--input-bg, rgba(0, 0, 0, 0.3));
