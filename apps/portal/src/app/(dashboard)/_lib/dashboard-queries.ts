@@ -1,4 +1,5 @@
 import { createPrismaClient } from "@attendance/db";
+import { currentReportingLineWhere } from "../../../lib/employment";
 import { hasPermission } from "../../../lib/rbac";
 import type { SessionUser } from "../../../lib/session";
 
@@ -11,8 +12,7 @@ export async function getDashboardCounts(user: SessionUser) {
       subordinateLines: {
         some: {
           supervisorEmploymentId: user.employeeId,
-          validUntil: null,
-          type: "PRIMARY" as const
+          ...currentReportingLineWhere()
         }
       }
     },

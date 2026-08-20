@@ -1,6 +1,7 @@
 import { createPrismaClient } from "@attendance/db";
 import { getEmployeeNotes } from "../../../team-attendance/actions";
 import {
+  currentReportingLineWhere,
   employmentAccessInclude,
   getEmploymentEmail,
   getEmploymentName,
@@ -21,7 +22,10 @@ export async function getNotesHistoryData(
         id: employeeId,
         organizationId,
         subordinateLines: {
-          some: { supervisorEmploymentId: viewerEmployeeId, validUntil: null }
+          some: {
+            supervisorEmploymentId: viewerEmployeeId,
+            ...currentReportingLineWhere()
+          }
         }
       };
 
