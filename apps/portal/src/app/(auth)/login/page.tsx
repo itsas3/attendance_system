@@ -52,7 +52,14 @@ export default function LoginPage() {
             disabled={isPending}
             suppressHydrationWarning
           >
-            {isPending ? "Signing in..." : "Sign In"}
+            {isPending ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                <span className="spinner spinner-sm" aria-hidden="true" />
+                <span>Signing in...</span>
+              </span>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
       </div>

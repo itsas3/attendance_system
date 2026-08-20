@@ -140,8 +140,15 @@ export function LeaveRequestModal({ balances, leaveTypes, onClose }: LeaveReques
             <button type="button" className="back-link" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" disabled={submitting} className="primary-btn">
-              {submitting ? "Submitting..." : "Submit Application"}
+            <button type="submit" disabled={submitting} className="btn-primary">
+              {submitting ? (
+                <>
+                  <span className="spinner spinner-sm" aria-hidden="true" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                "Submit Application"
+              )}
             </button>
           </div>
         </form>

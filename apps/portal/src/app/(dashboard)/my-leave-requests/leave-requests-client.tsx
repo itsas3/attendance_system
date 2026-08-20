@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { LeaveBalanceCards } from "./leave-balance-cards";
 import { LeaveRequestModal } from "./leave-request-modal";
 import { LeaveRequestTable } from "./leave-request-table";
@@ -28,6 +28,14 @@ export function LeaveRequestsClient({
 }: LeaveRequestsClientProps) {
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState<LeaveStatusFilter>("all");
+  const [isFiltering, startTransition] = useTransition();
+
+  const handleFilterChange = (newFilter: LeaveStatusFilter) => {
+    startTransition(() => {
+      setFilter(newFilter);
+    });
+  };
+
   const filteredRequests = myRequests.filter((request) => {
     if (filter === "pending")
       return request.status === "PENDING_MANAGER" || request.status === "PENDING_HR";
@@ -45,7 +53,8 @@ export function LeaveRequestsClient({
         allRequestCount={myRequests.length}
         filter={filter}
         userRole={userRole}
-        onFilterChange={setFilter}
+        isFiltering={isFiltering}
+        onFilterChange={handleFilterChange}
         onCreate={() => setShowModal(true)}
       />
       {showModal && (
