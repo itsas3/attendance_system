@@ -1,5 +1,8 @@
+"use client";
+
+import { useActionState } from "react";
 import { updateWeeklyOffDays } from "../actions";
-import { weekdayNames } from "../queries";
+import { weekdayNames } from "../constants";
 
 const policies = [
   {
@@ -28,7 +31,17 @@ function PolicyOption({
   selected: string;
 }) {
   return (
-    <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+    <label
+      style={{
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        padding: 12,
+        borderRadius: 8,
+        background: "rgba(255,255,255,.04)",
+        cursor: "pointer"
+      }}
+    >
       <input
         type="radio"
         name="offDaysType"
@@ -36,10 +49,7 @@ function PolicyOption({
         defaultChecked={selected === policy.value}
       />
       <div>
-        <strong>{policy.title}</strong>
-        <div className="muted" style={{ fontSize: "0.8rem" }}>
-          {policy.description}
-        </div>
+        <strong>{policy.title}</strong> – {policy.description}
       </div>
     </label>
   );
@@ -47,33 +57,43 @@ function PolicyOption({
 
 function CustomPolicy({ offDays, selected }: { offDays: number[]; selected: string }) {
   return (
-    <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+    <label
+      style={{
+        display: "flex",
+        gap: 12,
+        alignItems: "flex-start",
+        padding: 12,
+        borderRadius: 8,
+        background: "rgba(255,255,255,.04)",
+        cursor: "pointer"
+      }}
+    >
       <input
         type="radio"
         name="offDaysType"
         value="custom"
         defaultChecked={selected === "custom"}
       />
-      <div style={{ flex: 1 }}>
-        <strong>Custom / Hybrid Schedule</strong>
-        <div className="muted">Select specific off-days:</div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit,minmax(75px,1fr))",
-            gap: 8,
-            padding: 12
-          }}
-        >
-          {weekdayNames.map((name, index) => (
-            <label key={name}>
+      <div>
+        <strong>Custom Off-Days</strong>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8 }}>
+          {weekdayNames.map((day, idx) => (
+            <label
+              key={day}
+              style={{
+                display: "inline-flex",
+                gap: 6,
+                alignItems: "center",
+                fontSize: ".9rem"
+              }}
+            >
               <input
                 type="checkbox"
-                name="customDays"
-                value={index}
-                defaultChecked={offDays.includes(index)}
-              />{" "}
-              {name.slice(0, 3)}
+                name="customOffDays"
+                value={idx}
+                defaultChecked={offDays.includes(idx)}
+              />
+              {day}
             </label>
           ))}
         </div>
@@ -91,6 +111,11 @@ export function OffDaysForm({
   offDaysType: string;
   offDaysText: string;
 }) {
+  const [, formAction, isPending] = useActionState(async (_: unknown, formData: FormData) => {
+    await updateWeeklyOffDays(formData);
+    return null;
+  }, null);
+
   return (
     <section className="panel" style={{ cursor: "default" }}>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -102,15 +127,22 @@ export function OffDaysForm({
         <strong>ABSENT</strong>.
       </p>
       <form
-        action={updateWeeklyOffDays}
+        action={formAction}
         style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 20 }}
       >
         {policies.map((policy) => (
           <PolicyOption key={policy.value} policy={policy} selected={offDaysType} />
         ))}
         <CustomPolicy offDays={offDays} selected={offDaysType} />
-        <button type="submit" className="primary-btn">
-          Save Workday Policy
+        <button type="submit" className="btn-primary" disabled={isPending}>
+          {isPending ? (
+            <>
+              <span className="spinner spinner-sm" aria-hidden="true" />
+              <span>Saving Policy...</span>
+            </>
+          ) : (
+            "Save Workday Policy"
+          )}
         </button>
       </form>
     </section>

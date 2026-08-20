@@ -21,7 +21,10 @@ export async function updateWeeklyOffDays(formData: FormData) {
   let offDays: number[];
 
   if (offDaysType === "custom") {
-    const rawDays = formData.getAll("customDays");
+    const rawDays =
+      formData.getAll("customOffDays").length > 0
+        ? formData.getAll("customOffDays")
+        : formData.getAll("customDays");
     offDays = rawDays
       .map((d) => parseInt(d as string, 10))
       .filter((n) => !isNaN(n) && n >= 0 && n <= 6);

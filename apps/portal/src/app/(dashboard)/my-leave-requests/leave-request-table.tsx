@@ -16,6 +16,7 @@ interface LeaveRequestTableProps {
   allRequestCount: number;
   filter: LeaveStatusFilter;
   userRole: string;
+  isFiltering?: boolean;
   onFilterChange: (filter: LeaveStatusFilter) => void;
   onCreate: () => void;
 }
@@ -75,6 +76,7 @@ export function LeaveRequestTable({
   allRequestCount,
   filter,
   userRole,
+  isFiltering,
   onFilterChange,
   onCreate
 }: LeaveRequestTableProps) {
@@ -93,6 +95,13 @@ export function LeaveRequestTable({
           <p className="muted">Track your applications and approval status.</p>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {isFiltering && (
+            <span
+              className="spinner spinner-sm"
+              style={{ borderColor: "rgba(96,165,250,.4) transparent transparent transparent" }}
+              aria-label="Filtering"
+            />
+          )}
           <select
             value={filter}
             onChange={(event) => onFilterChange(event.target.value as LeaveStatusFilter)}
@@ -103,7 +112,7 @@ export function LeaveRequestTable({
             <option value="approved">Approved</option>
             <option value="cancelled">Cancelled / Rejected</option>
           </select>
-          <button type="button" className="primary-btn" onClick={onCreate}>
+          <button type="button" className="btn-primary" onClick={onCreate}>
             + Apply for Leave
           </button>
         </div>

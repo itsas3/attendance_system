@@ -1,15 +1,7 @@
 import { createPrismaClient } from "@attendance/db";
+import { weekdayNames } from "./constants";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
-export const weekdayNames = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday"
-];
 
 function getOffDaysType(days: number[]): string {
   if (days.length === 1 && days[0] === 0) return "sun_only";

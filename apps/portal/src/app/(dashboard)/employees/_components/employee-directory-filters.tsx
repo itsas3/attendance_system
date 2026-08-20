@@ -1,6 +1,7 @@
 type EmployeeDirectoryFiltersProps = {
   roleFilter: string;
   searchTerm: string;
+  isFiltering?: boolean;
   setRoleFilter: (value: string) => void;
   setSearchTerm: (value: string) => void;
 };
@@ -8,11 +9,12 @@ type EmployeeDirectoryFiltersProps = {
 export function EmployeeDirectoryFilters({
   roleFilter,
   searchTerm,
+  isFiltering,
   setRoleFilter,
   setSearchTerm
 }: EmployeeDirectoryFiltersProps) {
   return (
-    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
       <input
         type="search"
         className="form-control"
@@ -35,6 +37,13 @@ export function EmployeeDirectoryFilters({
         <option value="manager">Manager</option>
         <option value="employee">Employee</option>
       </select>
+      {isFiltering && (
+        <span
+          className="spinner spinner-sm"
+          style={{ borderColor: "rgba(96,165,250,.4) transparent transparent transparent" }}
+          aria-label="Filtering records"
+        />
+      )}
     </div>
   );
 }

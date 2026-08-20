@@ -1,6 +1,14 @@
+"use client";
+
+import { useActionState } from "react";
 import { createHoliday } from "../actions";
 
 export function HolidayForm() {
+  const [, formAction, isPending] = useActionState(async (_: unknown, formData: FormData) => {
+    await createHoliday(formData);
+    return null;
+  }, null);
+
   return (
     <section className="panel" style={{ cursor: "default" }}>
       <h2>Add Official Company Holiday</h2>
@@ -8,7 +16,7 @@ export function HolidayForm() {
         Employees without scans on holiday dates are marked as <strong>HOLIDAY</strong>.
       </p>
       <form
-        action={createHoliday}
+        action={formAction}
         style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 20 }}
       >
         <label>
@@ -23,8 +31,15 @@ export function HolidayForm() {
           Description (Optional)
           <input name="description" placeholder="Short note or description" />
         </label>
-        <button type="submit" className="primary-btn">
-          + Add Holiday Date
+        <button type="submit" className="btn-primary" disabled={isPending}>
+          {isPending ? (
+            <>
+              <span className="spinner spinner-sm" aria-hidden="true" />
+              <span>Adding Holiday...</span>
+            </>
+          ) : (
+            "+ Add Holiday Date"
+          )}
         </button>
       </form>
     </section>
