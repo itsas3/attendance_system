@@ -269,6 +269,16 @@ export async function updateApplicationStatus(formData: FormData) {
     return;
   }
 
+  const application = await db.jobApplication.findFirst({
+    where: {
+      id: applicationId,
+      jobPostingId,
+      jobPosting: { organizationId: user!.organizationId }
+    }
+  });
+
+  if (!application) return;
+
   await db.jobApplication.update({
     where: { id: applicationId },
     data: { status: status as (typeof APPLICATION_STATUSES)[number] }

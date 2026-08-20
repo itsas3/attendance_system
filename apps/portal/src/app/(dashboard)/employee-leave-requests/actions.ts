@@ -5,7 +5,11 @@ import { createPrismaClient } from "@attendance/db";
 import { getCurrentUser } from "../../../lib/session";
 
 import { calculateAvailableBalance } from "@attendance/attendance-core";
-import { employmentAccessInclude, getEmploymentRoleKey } from "../../../lib/employment";
+import {
+  currentReportingLineWhere,
+  employmentAccessInclude,
+  getEmploymentRoleKey
+} from "../../../lib/employment";
 
 const db = createPrismaClient(process.env.DATABASE_URL as string);
 
@@ -159,8 +163,8 @@ export async function approveLeaveRequestAction(
   }
 
   try {
-    const leaveReq = await db.leaveRequest.findUnique({
-      where: { id: requestId },
+    const leaveReq = await db.leaveRequest.findFirst({
+      where: { id: requestId, employee: { organizationId: user.organizationId } },
       include: {
         employee: { include: employmentAccessInclude() },
         approvalSteps: { orderBy: { sequence: "asc" } },
@@ -201,7 +205,7 @@ export async function approveLeaveRequestAction(
           where: {
             subordinateEmploymentId: leaveReq.employeeId,
             supervisorEmploymentId: user.employeeId,
-            validUntil: null
+            ...currentReportingLineWhere()
           }
         })) !== null;
 
@@ -300,8 +304,8 @@ export async function rejectLeaveRequestAction(requestId: string, reason?: strin
   }
 
   try {
-    const leaveReq = await db.leaveRequest.findUnique({
-      where: { id: requestId },
+    const leaveReq = await db.leaveRequest.findFirst({
+      where: { id: requestId, employee: { organizationId: user.organizationId } },
       include: { employee: { include: employmentAccessInclude() } }
     });
     if (!leaveReq) {

@@ -17,11 +17,15 @@ export async function GET(
 
   const { id, applicationId } = await params;
 
-  const application = await db.jobApplication.findUnique({
-    where: { id: applicationId }
+  const application = await db.jobApplication.findFirst({
+    where: {
+      id: applicationId,
+      jobPostingId: id,
+      jobPosting: { organizationId: user!.organizationId }
+    }
   });
 
-  if (!application || application.jobPostingId !== id) {
+  if (!application) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
